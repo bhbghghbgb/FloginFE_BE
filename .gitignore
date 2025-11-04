@@ -1,0 +1,16 @@
+### VS Code ###
+.vscode/
+
+# Node (frontend)
+frontend/node_modules/
+frontend/build/
+frontend/.env
+frontend/.coverage/
+
+# Java (backend)
+backend/target/
+backend/.idea/
+backend/.project
+backend/.classpath
+backend/.settings/
+backend/.env
