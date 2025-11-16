@@ -133,4 +133,25 @@ class AuthServiceImplTest {
         String result = authService.validateUsername("test@");
         assertEquals("Username contains invalid characters", result);
     }
+
+    @Test
+    public void testValidatePassword_ShouldReturnEmpty_WhenPasswordValid(){
+        String result = authService.validatePassword(rawPassword);
+        assertEquals("", result);
+    }
+    @Test
+    public void testValidatePassword_ShouldReturnErrorMessage_WhenPasswordNullOrBlank(){
+        String result = authService.validatePassword("");
+        assertEquals("Password cannot be empty", result);
+    }
+    @Test
+    public void testValidatePassword_ShouldReturnErrorMessage_WhenPasswordTooShortOrTooLong(){
+        String result = authService.validatePassword("u");
+        assertEquals("Password must be 6-100 characters", result);
+    }
+    @Test
+    public void testValidatePassword_ShouldReturnErrorMessage_WhenPasswordMissingLetterOrDigit(){
+        String result = authService.validatePassword("password");
+        assertEquals("Password must contain both letters and numbers", result);
+    }
 }
