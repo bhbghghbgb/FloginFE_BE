@@ -1,4 +1,4 @@
-package com.flogin.backend.service;
+package com.flogin.backend.service.product;
 
 import com.flogin.backend.dto.ProductRequest;
 import com.flogin.backend.dto.ProductResponse;

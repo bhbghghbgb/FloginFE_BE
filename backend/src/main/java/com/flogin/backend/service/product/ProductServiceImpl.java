@@ -1,10 +1,9 @@
-package com.flogin.backend.service.impl;
+package com.flogin.backend.service.product;
 
 import com.flogin.backend.dto.ProductRequest;
 import com.flogin.backend.dto.ProductResponse;
 import com.flogin.backend.entity.Product;
 import com.flogin.backend.repository.ProductRepository;
-import com.flogin.backend.service.IProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;

@@ -2,7 +2,7 @@ package com.flogin.backend.controller;
 
 import com.flogin.backend.dto.LoginRequest;
 import com.flogin.backend.dto.LoginResponse;
-import com.flogin.backend.service.IAuthService;
+import com.flogin.backend.service.auth.IAuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

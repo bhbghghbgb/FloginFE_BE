@@ -1,6 +1,6 @@
 package com.flogin.backend.config;
 
-import com.flogin.backend.service.IUserDetailService;
+import com.flogin.backend.service.auth.IUserDetailService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

@@ -1,4 +1,4 @@
-package com.flogin.backend.service;
+package com.flogin.backend.service.auth;
 
 import com.flogin.backend.dto.LoginRequest;
 import com.flogin.backend.dto.LoginResponse;

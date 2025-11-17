@@ -1,8 +1,7 @@
-package com.flogin.backend.service.impl;
+package com.flogin.backend.service.auth;
 
 import com.flogin.backend.entity.User;
 import com.flogin.backend.repository.UserRepository;
-import com.flogin.backend.service.IUserDetailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;

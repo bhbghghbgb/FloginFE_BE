@@ -2,7 +2,7 @@ package com.flogin.backend.controller;
 
 import com.flogin.backend.dto.ProductRequest;
 import com.flogin.backend.dto.ProductResponse;
-import com.flogin.backend.service.IProductService;
+import com.flogin.backend.service.product.IProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
