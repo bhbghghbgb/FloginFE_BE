@@ -1,4 +1,4 @@
-package com.flogin.backend.service;
+package com.flogin.backend.service.auth;
 
 import org.springframework.security.core.userdetails.UserDetails;
 

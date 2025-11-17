@@ -1,6 +1,6 @@
 package com.flogin.backend.config;
 
-import com.flogin.backend.service.IUserDetailService;
+import com.flogin.backend.service.auth.IUserDetailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
