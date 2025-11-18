@@ -71,9 +71,6 @@ public class AuthServiceImpl implements IAuthService {
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             return new LoginResponse(false, "Password is incorrect", null);
         }
-        if (!user.getActive()) {
-            return new LoginResponse(false, "User is inactive", null);
-        }
 
         String token = jwtUtil.generateToken(user.getUsername());
         return new LoginResponse(true, "Login successfully", token);
