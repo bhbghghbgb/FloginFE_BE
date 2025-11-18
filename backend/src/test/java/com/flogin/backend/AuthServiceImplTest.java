@@ -133,7 +133,8 @@ class AuthServiceImplTest {
     }
     @Test
     public void testValidateUsername_ShouldReturnErrorMessage_WhenUsernameTooLong(){
-        String result = authService.validateUsername("uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu");
+        String longUsername = "a".repeat(51);
+        String result = authService.validateUsername(longUsername);
         assertEquals("Username must be 3-50 characters", result);
     }
     @Test
@@ -164,7 +165,8 @@ class AuthServiceImplTest {
     }
     @Test
     public void testValidatePassword_ShouldReturnErrorMessage_WhenPasswordTooLong(){
-        String result = authService.validatePassword("u1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111");
+        String longPassword = "a".repeat(101);
+        String result = authService.validatePassword(longPassword);
         assertEquals("Password must be 6-100 characters", result);
     }
     @Test
