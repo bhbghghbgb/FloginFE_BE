@@ -99,6 +99,19 @@ class ProductServiceImplTest {
         assertEquals("Updated Product", response.getName());
         verify(productRepository, times(1)).save(any(Product.class));
     }
+    @Test
+    void testUpdateProduct_ShouldThrowException_WhenProductNotFound() {
+        when(productRepository.findById(1L)).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class, ()->productService.updateProduct(1L, request));
+    }
+    @Test
+    void testUpdateProduct_ShouldThrowException_WhenProductNameAlreadyExists() {
+        request.setName("New Name");
+        when(productRepository.findById(1L)).thenReturn(Optional.of(product));
+        when(productRepository.existsByName(request.getName())).thenReturn(true);
+        assertThrows(IllegalArgumentException.class, ()->productService.updateProduct(1L, request));
+    }
 
     @Test
     void testDeleteProduct_ShouldChangeIsActiveToFalse_WhenSuccess() {
@@ -108,6 +121,12 @@ class ProductServiceImplTest {
 
         assertFalse(product.getActive());
         verify(productRepository, times(1)).save(product);
+    }
+    @Test
+    void testDeleteProduct_ShouldThrowException_WhenProductNotFound() {
+        when(productRepository.findById(1L)).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class, ()->productService.deleteProduct(1L));
     }
 
     @Test
@@ -123,5 +142,41 @@ class ProductServiceImplTest {
         assertNotNull(responsePage);
         assertEquals(1, responsePage.getTotalElements());
         assertEquals("Test Product", responsePage.getContent().get(0).getName());
+    }
+    @Test
+    void testGetProducts_ShouldReturnPageProductResponse_WhenNameKeyWordNull() {
+        List<Product> productList = Arrays.asList(product);
+        Page<Product> page = new PageImpl<>(productList);
+        when(productRepository.findByNameContainingIgnoreCaseAndCategoryContainingIgnoreCaseAndActiveTrue(
+                anyString(), anyString(), any(Pageable.class)
+        )).thenReturn(page);
+
+        Page<ProductResponse> responsePage = productService.getProducts(null, "Test Category", 0, 10);
+
+        assertNotNull(responsePage);
+        assertEquals(1, responsePage.getTotalElements());
+        assertEquals("Test Product", responsePage.getContent().get(0).getName());
+    }
+    @Test
+    void testGetProducts_ShouldReturnPageProductResponse_WhenCategoryKeywordNull() {
+        List<Product> productList = Arrays.asList(product);
+        Page<Product> page = new PageImpl<>(productList);
+        when(productRepository.findByNameContainingIgnoreCaseAndCategoryContainingIgnoreCaseAndActiveTrue(
+                anyString(), anyString(), any(Pageable.class)
+        )).thenReturn(page);
+
+        Page<ProductResponse> responsePage = productService.getProducts("Test", null, 0, 10);
+
+        assertNotNull(responsePage);
+        assertEquals(1, responsePage.getTotalElements());
+        assertEquals("Test Product", responsePage.getContent().get(0).getName());
+    }
+    @Test
+    void testGetProducts_ShouldThrowException_WhenSizeIsZero() {
+        assertThrows(IllegalArgumentException.class, ()->productService.getProducts("", "", 1, 0));
+    }
+    @Test
+    void testGetProducts_ShouldThrowException_WhenPageNegative() {
+        assertThrows(IllegalArgumentException.class, ()->productService.getProducts("", "", -1, 10));
     }
 }
