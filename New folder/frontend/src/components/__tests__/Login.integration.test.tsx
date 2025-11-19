@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { apiClient } from "../../services/api";
+import { Login } from "../Login";
 
 // Mock the API client
 jest.mock("../../services/api");
