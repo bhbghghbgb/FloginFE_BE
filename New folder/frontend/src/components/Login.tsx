@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { validateUsername, validatePassword } from "../utils/validation";
 import { apiClient, type LoginRequest } from "../services/api";
+import { validatePassword, validateUsername } from "../utils/validation";
 
 export const Login: React.FC = () => {
   const [formData, setFormData] = useState<LoginRequest>({

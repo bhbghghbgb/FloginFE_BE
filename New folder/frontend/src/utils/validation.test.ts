@@ -1,7 +1,7 @@
 import {
-  validateUsername,
   validatePassword,
   validateProduct,
+  validateUsername,
 } from "./validation";
 
 describe("Login Validation", () => {
