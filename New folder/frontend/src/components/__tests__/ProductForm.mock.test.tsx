@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi, type Mocked } from "vitest";
 import { apiClient } from "../../services/api";
 import { ProductForm } from "../ProductForm";
+import { createMockAxiosResponse } from "./Common";
 
 vi.mock("../../services/api");
 const mockApiClient = apiClient as Mocked<typeof apiClient>;
@@ -13,19 +14,16 @@ describe("ProductForm Mock Testing", () => {
   });
 
   it("should mock CRUD operations for product creation", async () => {
-    const mockResponse = {
-      data: {
-        id: 1,
-        name: "New Product",
-        price: 100,
-        quantity: 10,
-        description: "Test",
-        category: "Electronics",
-        active: true,
-      },
-      status: 200,
-      statusText: "OK",
+    const mockProductData = {
+      id: 1,
+      name: "New Product",
+      price: 100,
+      quantity: 10,
+      description: "Test",
+      category: "Electronics",
+      active: true,
     };
+    const mockResponse = createMockAxiosResponse(mockProductData);
     mockApiClient.createProduct.mockResolvedValue(mockResponse);
 
     render(<ProductForm />);
@@ -66,17 +64,12 @@ describe("ProductForm Mock Testing", () => {
       active: true,
     };
 
-    mockApiClient.getProductById.mockResolvedValue({
-      data: mockProduct,
-      status: 200,
-      statusText: "OK",
-    } as any);
+    const mockGetResponse = createMockAxiosResponse(mockProduct);
+    mockApiClient.getProductById.mockResolvedValue(mockGetResponse);
 
-    mockApiClient.updateProduct.mockResolvedValue({
-      data: { ...mockProduct, name: "Updated Product" },
-      status: 200,
-      statusText: "OK",
-    } as any);
+    const updatedProduct = { ...mockProduct, name: "Updated Product" };
+    const mockUpdateResponse = createMockAxiosResponse(updatedProduct);
+    mockApiClient.updateProduct.mockResolvedValue(mockUpdateResponse);
 
     render(<ProductForm productId={1} />);
 
@@ -131,19 +124,16 @@ describe("ProductForm Mock Testing", () => {
   });
 
   it("should verify all mock calls with correct parameters", async () => {
-    const mockResponse = {
-      data: {
-        id: 1,
-        name: "Test Product",
-        price: 150,
-        quantity: 20,
-        description: "Test desc",
-        category: "Test Category",
-        active: true,
-      },
-      status: 200,
-      statusText: "OK",
+    const mockProductData = {
+      id: 1,
+      name: "Test Product",
+      price: 150,
+      quantity: 20,
+      description: "Test desc",
+      category: "Test Category",
+      active: true,
     };
+    const mockResponse = createMockAxiosResponse(mockProductData);
     mockApiClient.createProduct.mockResolvedValue(mockResponse);
 
     const onSuccess = vi.fn();
@@ -189,7 +179,7 @@ describe("ProductForm Mock Testing", () => {
         description: productData.description,
         category: productData.category,
       });
-      expect(onSuccess).toHaveBeenCalledWith(mockResponse.data);
+      expect(onSuccess).toHaveBeenCalledWith(mockProductData);
     });
   });
 });

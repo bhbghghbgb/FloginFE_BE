@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi, type Mocked } from "vitest";
 import { apiClient } from "../../services/api";
 import { ProductForm } from "../ProductForm";
+import { createMockAxiosResponse } from "./Common";
 
 vi.mock("../../services/api");
 
@@ -15,19 +16,16 @@ describe("ProductForm Integration", () => {
 
   it("should submit form with valid data", async () => {
     const onSuccess = vi.fn();
-    const mockResponse = {
-      data: {
-        id: 1,
-        name: "New Product",
-        price: 100,
-        quantity: 10,
-        description: "Test Description",
-        category: "Electronics",
-        active: true,
-      },
-      status: 200,
-      statusText: "OK",
+    const mockProductData = {
+      id: 1,
+      name: "New Product",
+      price: 100,
+      quantity: 10,
+      description: "Test Description",
+      category: "Electronics",
+      active: true,
     };
+    const mockResponse = createMockAxiosResponse(mockProductData);
     mockApiClient.createProduct.mockResolvedValue(mockResponse);
 
     render(<ProductForm onSuccess={onSuccess} />);
@@ -57,7 +55,7 @@ describe("ProductForm Integration", () => {
         description: "Test Description",
         category: "Electronics",
       });
-      expect(onSuccess).toHaveBeenCalledWith(mockResponse.data);
+      expect(onSuccess).toHaveBeenCalledWith(mockProductData);
     });
   });
 
@@ -86,11 +84,8 @@ describe("ProductForm Integration", () => {
       active: true,
     };
 
-    mockApiClient.getProductById.mockResolvedValue({
-      data: mockProduct,
-      status: 200,
-      statusText: "OK",
-    } as any);
+    const mockResponse = createMockAxiosResponse(mockProduct);
+    mockApiClient.getProductById.mockResolvedValue(mockResponse);
 
     render(<ProductForm productId={1} />);
 

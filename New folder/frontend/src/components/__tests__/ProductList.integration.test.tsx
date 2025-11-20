@@ -2,6 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi, type Mocked } from "vitest";
 import { apiClient } from "../../services/api";
 import { ProductList } from "../ProductList";
+import { createMockAxiosResponse } from "./Common";
 
 // Mock the API client
 vi.mock("../../services/api");
@@ -26,11 +27,8 @@ describe("ProductList Integration", () => {
       },
     ];
 
-    mockApiClient.getProducts.mockResolvedValue({
-      data: { content: mockProducts },
-      status: 200,
-      statusText: "OK",
-    } as any);
+    const mockResponse = createMockAxiosResponse({ content: mockProducts });
+    mockApiClient.getProducts.mockResolvedValue(mockResponse);
 
     render(<ProductList />);
 

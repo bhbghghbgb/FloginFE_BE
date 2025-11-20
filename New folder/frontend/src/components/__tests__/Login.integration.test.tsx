@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi, type Mocked } from "vitest";
 import { apiClient } from "../../services/api";
 import { Login } from "../Login";
+import { createMockAxiosResponse } from "./Common";
 
 // Mock the API client
 vi.mock("../../services/api");
@@ -31,11 +32,12 @@ describe("Login Component Integration", () => {
   });
 
   it("should handle form submission and API call", async () => {
-    const mockLoginResponse = {
-      data: { success: true, message: "Login successful", token: "jwt-token" },
-      status: 200,
-      statusText: "OK",
+    const mockLoginData = {
+      success: true,
+      message: "Login successful",
+      token: "jwt-token",
     };
+    const mockLoginResponse = createMockAxiosResponse(mockLoginData);
     mockApiClient.login.mockResolvedValue(mockLoginResponse);
 
     render(<Login />);
@@ -52,17 +54,23 @@ describe("Login Component Integration", () => {
     });
   });
 
-  it("should handle API errors and display error messages", async () => {
-    mockApiClient.login.mockRejectedValue(new Error("Login failed"));
+  it("should handle generic API errors and display fallback message", async () => {
+    const validUsername = "testuser";
+    const validPassword = "TestPass123";
+
+    // 2. Mock the rejection with a standard Error object (no 'response' property)
+    mockApiClient.login.mockRejectedValue(new Error("Network Error"));
 
     render(<Login />);
 
-    await userEvent.type(screen.getByLabelText(/username/i), "testuser");
-    await userEvent.type(screen.getByLabelText(/password/i), "wrongpassword");
+    await userEvent.type(screen.getByLabelText(/username/i), validUsername);
+    await userEvent.type(screen.getByLabelText(/password/i), validPassword);
     await userEvent.click(screen.getByRole("button", { name: /login/i }));
 
     await waitFor(() => {
-      expect(screen.getByText(/login failed/i)).toBeInTheDocument();
+      expect(mockApiClient.login).toHaveBeenCalledTimes(1);
+
+      expect(screen.getByText("Login failed")).toBeInTheDocument();
     });
   });
 });

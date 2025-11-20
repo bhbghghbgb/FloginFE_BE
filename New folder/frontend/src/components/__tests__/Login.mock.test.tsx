@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi, type Mocked } from "vitest";
 import { apiClient } from "../../services/api";
 import { Login } from "../Login";
+import { createMockAxiosResponse } from "./Common";
 
 // Mock the API client
 vi.mock("../../services/api");
@@ -14,11 +15,12 @@ describe("Login Mock Testing", () => {
   });
 
   it("should mock authService.loginUser with successful response", async () => {
-    const mockResponse = {
-      data: { success: true, message: "Login successful", token: "jwt-token" },
-      status: 200,
-      statusText: "OK",
+    const mockLoginData = {
+      success: true,
+      message: "Login successful",
+      token: "jwt-token",
     };
+    const mockResponse = createMockAxiosResponse(mockLoginData);
     mockApiClient.login.mockResolvedValue(mockResponse);
 
     render(<Login />);
@@ -37,28 +39,34 @@ describe("Login Mock Testing", () => {
   });
 
   it("should mock authService.loginUser with failed response", async () => {
+    const validUsername = "testuser";
+    const validPassword = "TestPass123";
+
     mockApiClient.login.mockRejectedValue({
-      response: { data: { message: "Invalid credentials" } },
+      response: { data: { message: "Invalid credentials from server" } },
     });
 
     render(<Login />);
 
-    await userEvent.type(screen.getByLabelText(/username/i), "wronguser");
-    await userEvent.type(screen.getByLabelText(/password/i), "wrongpass");
+    await userEvent.type(screen.getByLabelText(/username/i), validUsername);
+    await userEvent.type(screen.getByLabelText(/password/i), validPassword);
     await userEvent.click(screen.getByRole("button", { name: /login/i }));
 
     await waitFor(() => {
       expect(mockApiClient.login).toHaveBeenCalledTimes(1);
-      expect(screen.getByText(/invalid credentials/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Invalid credentials from server/i)
+      ).toBeInTheDocument();
     });
   });
 
   it("should verify mock calls and their parameters", async () => {
-    const mockResponse = {
-      data: { success: true, message: "Login successful", token: "jwt-token" },
-      status: 200,
-      statusText: "OK",
+    const mockLoginData = {
+      success: true,
+      message: "Login successful",
+      token: "jwt-token",
     };
+    const mockResponse = createMockAxiosResponse(mockLoginData);
     mockApiClient.login.mockResolvedValue(mockResponse);
 
     render(<Login />);
