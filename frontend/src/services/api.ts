@@ -38,7 +38,7 @@ export interface ProductResponse {
 class ApiClient {
   private client: AxiosInstance;
 
-  constructor(baseURL: string = "http://localhost:8080/api") {
+  constructor(baseURL: string = import.meta.env.VITE_API_BASE_URL) {
     this.client = axios.create({
       baseURL,
       timeout: 10000,

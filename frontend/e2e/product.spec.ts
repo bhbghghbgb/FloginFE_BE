@@ -1,12 +1,16 @@
 import { expect, test } from "@playwright/test";
 import { ProductPage } from "./pages/ProductPage";
+import { loginAndSaveState } from "./utils";
 
 test.describe("Product E2E Tests", () => {
   let productPage: ProductPage;
 
   test.beforeEach(async ({ page }) => {
+    // 1. Login before running any product test
+    await loginAndSaveState(page);
+
+    // 2. Navigate to products after login
     productPage = new ProductPage(page);
-    // Assume we are logged in and navigate to products
     await page.goto("/products");
   });
 

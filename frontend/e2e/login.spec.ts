@@ -9,20 +9,11 @@ test.describe("Login E2E Tests", () => {
     await loginPage.goto();
   });
 
-  test("complete login flow", async ({ page }) => {
-    // Mock successful login response
-    await page.route("**/api/auth/login", async (route) => {
-      const json = {
-        success: true,
-        message: "Login successful",
-        token: "jwt-token",
-      };
-      await route.fulfill({ json });
-    });
+  test("successful login flow", async ({ page }) => {
+    // Use the seeded admin account credentials: testuser/Test123
+    await loginPage.login("testuser", "Test123");
 
-    await loginPage.login("validuser", "validpass123");
-
-    // Verify successful login redirect to dashboard
+    // Wait for a successful login redirect to dashboard
     await expect(page).toHaveURL(/.*\/dashboard/);
     await expect(page.locator("text=Welcome to your dashboard")).toBeVisible();
   });
