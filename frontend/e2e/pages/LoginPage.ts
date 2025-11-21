@@ -11,12 +11,12 @@ export class LoginPage {
 
   constructor(page: Page) {
     this.page = page;
-    this.usernameInput = page.getByLabel(/username/i);
-    this.passwordInput = page.getByLabel(/password/i);
-    this.loginButton = page.getByRole("button", { name: /login/i });
-    this.usernameError = page.locator('[data-testid="username-error"]');
-    this.passwordError = page.locator('[data-testid="password-error"]');
-    this.errorMessage = page.locator('[data-testid="login-error"]');
+    this.usernameInput = page.getByTestId("username-input");
+    this.passwordInput = page.getByTestId("password-input");
+    this.loginButton = page.getByTestId("login-button");
+    this.usernameError = page.getByTestId("username-error");
+    this.passwordError = page.getByTestId("password-error");
+    this.errorMessage = page.getByTestId("login-error");
   }
 
   async goto() {

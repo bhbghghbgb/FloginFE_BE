@@ -1,6 +1,8 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi, type Mocked } from "vitest";
 import { apiClient } from "../../services/api";
+import { createMockAxiosError } from "../../utils/mock-utils";
+import { testWrapperRender } from "../../utils/test-utils";
 import { ProductList } from "../ProductList";
 import { createMockAxiosResponse } from "./Common";
 
@@ -27,10 +29,11 @@ describe("ProductList Integration", () => {
       },
     ];
 
-    const mockResponse = createMockAxiosResponse({ content: mockProducts });
-    mockApiClient.getProducts.mockResolvedValue(mockResponse);
+    mockApiClient.getProducts.mockResolvedValue(
+      createMockAxiosResponse({ content: mockProducts })
+    );
 
-    render(<ProductList />);
+    testWrapperRender(<ProductList />);
 
     await waitFor(() => {
       expect(screen.getByTestId("product-list")).toBeInTheDocument();
@@ -41,9 +44,11 @@ describe("ProductList Integration", () => {
   });
 
   it("should display error when fetch fails", async () => {
-    mockApiClient.getProducts.mockRejectedValue(new Error("Network error"));
+    mockApiClient.getProducts.mockRejectedValue(
+      createMockAxiosError("Network error")
+    );
 
-    render(<ProductList />);
+    testWrapperRender(<ProductList />);
 
     await waitFor(() => {
       expect(screen.getByTestId("error-message")).toBeInTheDocument();

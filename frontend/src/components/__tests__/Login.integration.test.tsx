@@ -1,7 +1,9 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi, type Mocked } from "vitest";
 import { apiClient } from "../../services/api";
+import { createMockAxiosError } from "../../utils/mock-utils";
+import { testWrapperRender } from "../../utils/test-utils";
 import { Login } from "../Login";
 import { createMockAxiosResponse } from "./Common";
 
@@ -16,35 +18,37 @@ describe("Login Component Integration", () => {
   });
 
   it("should render login form and handle user interactions", async () => {
-    render(<Login />);
+    testWrapperRender(<Login />);
 
     // Test rendering
-    expect(screen.getByLabelText(/username/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /login/i })).toBeInTheDocument();
+    expect(screen.getByTestId("username-input")).toBeInTheDocument();
+    expect(screen.getByTestId("password-input")).toBeInTheDocument();
+    expect(screen.getByTestId("login-button")).toBeInTheDocument();
 
     // Test user interactions
-    await userEvent.type(screen.getByLabelText(/username/i), "testuser");
-    await userEvent.type(screen.getByLabelText(/password/i), "password123");
+    await userEvent.type(screen.getByTestId("username-input"), "testuser");
+    await userEvent.type(screen.getByTestId("password-input"), "password123");
 
-    expect(screen.getByLabelText(/username/i)).toHaveValue("testuser");
-    expect(screen.getByLabelText(/password/i)).toHaveValue("password123");
+    expect(screen.getByTestId("username-input")).toHaveValue("testuser");
+    expect(screen.getByTestId("password-input")).toHaveValue("password123");
   });
 
   it("should handle form submission and API call", async () => {
-    const mockLoginData = {
+    const mockLoginResponse = {
       success: true,
       message: "Login successful",
       token: "jwt-token",
     };
-    const mockLoginResponse = createMockAxiosResponse(mockLoginData);
-    mockApiClient.login.mockResolvedValue(mockLoginResponse);
 
-    render(<Login />);
+    mockApiClient.login.mockResolvedValue(
+      createMockAxiosResponse(mockLoginResponse)
+    );
 
-    await userEvent.type(screen.getByLabelText(/username/i), "testuser");
-    await userEvent.type(screen.getByLabelText(/password/i), "password123");
-    await userEvent.click(screen.getByRole("button", { name: /login/i }));
+    testWrapperRender(<Login />);
+
+    await userEvent.type(screen.getByTestId("username-input"), "testuser");
+    await userEvent.type(screen.getByTestId("password-input"), "password123");
+    await userEvent.click(screen.getByTestId("login-button"));
 
     await waitFor(() => {
       expect(mockApiClient.login).toHaveBeenCalledWith({
@@ -54,23 +58,20 @@ describe("Login Component Integration", () => {
     });
   });
 
-  it("should handle generic API errors and display fallback message", async () => {
-    const validUsername = "testuser";
-    const validPassword = "TestPass123";
+  it("should handle API errors and display error messages", async () => {
+    mockApiClient.login.mockRejectedValue(
+      createMockAxiosError("Login failed", 401)
+    );
 
-    // 2. Mock the rejection with a standard Error object (no 'response' property)
-    mockApiClient.login.mockRejectedValue(new Error("Network Error"));
+    testWrapperRender(<Login />);
 
-    render(<Login />);
-
-    await userEvent.type(screen.getByLabelText(/username/i), validUsername);
-    await userEvent.type(screen.getByLabelText(/password/i), validPassword);
-    await userEvent.click(screen.getByRole("button", { name: /login/i }));
+    await userEvent.type(screen.getByTestId("username-input"), "testuser");
+    await userEvent.type(screen.getByTestId("password-input"), "wrongpassword");
+    await userEvent.click(screen.getByTestId("login-button"));
 
     await waitFor(() => {
-      expect(mockApiClient.login).toHaveBeenCalledTimes(1);
-
-      expect(screen.getByText("Login failed")).toBeInTheDocument();
+      expect(screen.getByTestId("login-error")).toBeInTheDocument();
+      expect(screen.getByText(/login failed/i)).toBeInTheDocument();
     });
   });
 });

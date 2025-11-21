@@ -1,10 +1,13 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi, type Mocked } from "vitest";
 import { apiClient } from "../../services/api";
+import { mockUseParams } from "../../utils/mock-utils";
+import { testWrapperRender } from "../../utils/test-utils";
 import { ProductForm } from "../ProductForm";
 import { createMockAxiosResponse } from "./Common";
 
+// Mock the API client
 vi.mock("../../services/api");
 
 describe("ProductForm Integration", () => {
@@ -15,8 +18,7 @@ describe("ProductForm Integration", () => {
   });
 
   it("should submit form with valid data", async () => {
-    const onSuccess = vi.fn();
-    const mockProductData = {
+    const mockResponse = {
       id: 1,
       name: "New Product",
       price: 100,
@@ -25,10 +27,12 @@ describe("ProductForm Integration", () => {
       category: "Electronics",
       active: true,
     };
-    const mockResponse = createMockAxiosResponse(mockProductData);
-    mockApiClient.createProduct.mockResolvedValue(mockResponse);
 
-    render(<ProductForm onSuccess={onSuccess} />);
+    mockApiClient.createProduct.mockResolvedValue(
+      createMockAxiosResponse(mockResponse)
+    );
+
+    testWrapperRender(<ProductForm />);
 
     await userEvent.type(
       screen.getByTestId("product-name-input"),
@@ -36,7 +40,7 @@ describe("ProductForm Integration", () => {
     );
     await userEvent.type(screen.getByTestId("product-price-input"), "100");
     await userEvent.type(screen.getByTestId("product-quantity-input"), "10");
-    await userEvent.type(
+    await userEvent.selectOptions(
       screen.getByTestId("product-category-input"),
       "Electronics"
     );
@@ -45,7 +49,7 @@ describe("ProductForm Integration", () => {
       "Test Description"
     );
 
-    fireEvent.click(screen.getByTestId("submit-product"));
+    await userEvent.click(screen.getByTestId("submit-product"));
 
     await waitFor(() => {
       expect(mockApiClient.createProduct).toHaveBeenCalledWith({
@@ -55,15 +59,14 @@ describe("ProductForm Integration", () => {
         description: "Test Description",
         category: "Electronics",
       });
-      expect(onSuccess).toHaveBeenCalledWith(mockProductData);
     });
   });
 
   it("should display validation errors for invalid data", async () => {
-    render(<ProductForm />);
+    testWrapperRender(<ProductForm />);
 
     await userEvent.type(screen.getByTestId("product-name-input"), "ab");
-    fireEvent.click(screen.getByTestId("submit-product"));
+    await userEvent.click(screen.getByTestId("submit-product"));
 
     await waitFor(() => {
       expect(screen.getByTestId("form-errors")).toBeInTheDocument();
@@ -74,6 +77,9 @@ describe("ProductForm Integration", () => {
   });
 
   it("should load product data when editing", async () => {
+    // Mock useParams for editing
+    mockUseParams({ id: "1" });
+
     const mockProduct = {
       id: 1,
       name: "Existing Product",
@@ -84,16 +90,22 @@ describe("ProductForm Integration", () => {
       active: true,
     };
 
-    const mockResponse = createMockAxiosResponse(mockProduct);
-    mockApiClient.getProductById.mockResolvedValue(mockResponse);
+    mockApiClient.getProductById.mockResolvedValue(
+      createMockAxiosResponse(mockProduct)
+    );
 
-    render(<ProductForm productId={1} />);
+    // Re-import the component after mocking useParams
+    const { ProductForm: ProductFormComponent } = await import(
+      "../ProductForm"
+    );
+
+    testWrapperRender(<ProductFormComponent />);
 
     await waitFor(() => {
       expect(screen.getByTestId("product-name-input")).toHaveValue(
         "Existing Product"
       );
-      expect(screen.getByTestId("product-price-input")).toHaveValue(200);
+      expect(screen.getByTestId("product-price-input")).toHaveValue("200");
       expect(screen.getByTestId("product-category-input")).toHaveValue("Books");
     });
   });

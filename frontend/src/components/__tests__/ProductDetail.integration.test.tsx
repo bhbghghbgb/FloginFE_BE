@@ -1,61 +1,106 @@
 import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi, type Mocked } from "vitest";
 import { apiClient } from "../../services/api";
-import { ProductDetail } from "../ProductDetail";
+import { ProductForm } from "../ProductForm";
 import { createMockAxiosResponse } from "./Common";
 
 vi.mock("../../services/api");
 
-describe("ProductDetail Integration", () => {
+describe("ProductForm Integration", () => {
   const mockApiClient = apiClient as Mocked<typeof apiClient>;
 
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("should fetch and display product details", async () => {
-    const mockProduct = {
+  it("should submit form with valid data", async () => {
+    const mockResponse = {
       id: 1,
-      name: "Test Product",
-      price: 150,
-      quantity: 25,
-      description: "A great product",
+      name: "New Product",
+      price: 100,
+      quantity: 10,
+      description: "Test Description",
       category: "Electronics",
       active: true,
     };
+    mockApiClient.createProduct.mockResolvedValue(
+      createMockAxiosResponse(mockResponse)
+    );
 
-    const mockResponse = createMockAxiosResponse(mockProduct);
-    mockApiClient.getProductById.mockResolvedValue(mockResponse);
+    render(<ProductForm />);
 
-    render(<ProductDetail productId={1} />);
+    await userEvent.type(
+      screen.getByTestId("product-name-input"),
+      "New Product"
+    );
+    await userEvent.type(screen.getByTestId("product-price-input"), "100");
+    await userEvent.type(screen.getByTestId("product-quantity-input"), "10");
+    await userEvent.type(
+      screen.getByTestId("product-category-input"),
+      "Electronics"
+    );
+    await userEvent.type(
+      screen.getByTestId("product-description-input"),
+      "Test Description"
+    );
+
+    await userEvent.click(screen.getByTestId("submit-product"));
 
     await waitFor(() => {
-      expect(screen.getByTestId("product-detail")).toBeInTheDocument();
-      expect(screen.getByTestId("product-name")).toHaveTextContent(
-        "Test Product"
-      );
-      expect(screen.getByTestId("product-price")).toHaveTextContent(
-        "Price: $150"
-      );
-      expect(screen.getByTestId("product-quantity")).toHaveTextContent(
-        "Quantity: 25"
-      );
-      expect(screen.getByTestId("product-category")).toHaveTextContent(
-        "Category: Electronics"
-      );
+      expect(mockApiClient.createProduct).toHaveBeenCalledWith({
+        name: "New Product",
+        price: 100,
+        quantity: 10,
+        description: "Test Description",
+        category: "Electronics",
+      });
     });
   });
 
-  it("should display error for non-existent product", async () => {
-    mockApiClient.getProductById.mockRejectedValue({
-      response: { data: { message: "Product not found" } },
-    });
+  it("should display validation errors for invalid data", async () => {
+    render(<ProductForm />);
 
-    render(<ProductDetail productId={999} />);
+    await userEvent.type(screen.getByTestId("product-name-input"), "ab");
+    await userEvent.click(screen.getByTestId("submit-product"));
 
     await waitFor(() => {
-      expect(screen.getByTestId("error-message")).toBeInTheDocument();
-      expect(screen.getByText(/product not found/i)).toBeInTheDocument();
+      expect(screen.getByTestId("form-errors")).toBeInTheDocument();
+      expect(
+        screen.getByText(/product name must be at least 3 characters/i)
+      ).toBeInTheDocument();
+    });
+  });
+
+  it("should load product data when editing", async () => {
+    const mockProduct = {
+      id: 1,
+      name: "Existing Product",
+      price: 200,
+      quantity: 5,
+      description: "Existing Description",
+      category: "Books",
+      active: true,
+    };
+
+    mockApiClient.getProductById.mockResolvedValue(
+      createMockAxiosResponse(mockProduct)
+    );
+
+    // For editing, we need to mock the useParams hook
+    vi.mock("react-router-dom", () => ({
+      ...vi.requireActual("react-router-dom"),
+      useParams: () => ({ id: "1" }),
+    }));
+
+    render(<ProductForm />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("product-name-input")).toHaveValue(
+        "Existing Product"
+      );
+      expect(screen.getByTestId("product-price-input")).toHaveValue("200");
+      expect(screen.getByTestId("product-category-input")).toHaveValue("Books");
     });
   });
 });

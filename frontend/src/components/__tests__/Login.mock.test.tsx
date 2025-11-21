@@ -1,7 +1,8 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi, type Mocked } from "vitest";
 import { apiClient } from "../../services/api";
+import { testWrapperRender } from "../../utils/test-utils";
 import { Login } from "../Login";
 import { createMockAxiosResponse } from "./Common";
 
@@ -23,7 +24,7 @@ describe("Login Mock Testing", () => {
     const mockResponse = createMockAxiosResponse(mockLoginData);
     mockApiClient.login.mockResolvedValue(mockResponse);
 
-    render(<Login />);
+    testWrapperRender(<Login />);
 
     await userEvent.type(screen.getByLabelText(/username/i), "testuser");
     await userEvent.type(screen.getByLabelText(/password/i), "password123");
@@ -46,7 +47,7 @@ describe("Login Mock Testing", () => {
       response: { data: { message: "Invalid credentials from server" } },
     });
 
-    render(<Login />);
+    testWrapperRender(<Login />);
 
     await userEvent.type(screen.getByLabelText(/username/i), validUsername);
     await userEvent.type(screen.getByLabelText(/password/i), validPassword);
@@ -69,7 +70,7 @@ describe("Login Mock Testing", () => {
     const mockResponse = createMockAxiosResponse(mockLoginData);
     mockApiClient.login.mockResolvedValue(mockResponse);
 
-    render(<Login />);
+    testWrapperRender(<Login />);
 
     const username = "testuser";
     const password = "testpass123";

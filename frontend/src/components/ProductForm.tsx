@@ -1,22 +1,15 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   apiClient,
   type ProductRequest,
   type ProductResponse,
 } from "../services/api";
-import { validateProduct, type ProductFormData } from "../utils/validation";
+import { type ProductFormData, validateProduct } from "../utils/validation";
 
-interface ProductFormProps {
-  productId?: number;
-  onSuccess?: (product: ProductResponse) => void;
-  onCancel?: () => void;
-}
-
-export const ProductForm: React.FC<ProductFormProps> = ({
-  productId,
-  onSuccess,
-  onCancel,
-}) => {
+export const ProductForm: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState<ProductFormData>({
     name: "",
     price: "",
@@ -26,13 +19,15 @@ export const ProductForm: React.FC<ProductFormProps> = ({
   });
   const [errors, setErrors] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+
+  const isEditing = !!id;
 
   useEffect(() => {
-    if (productId) {
-      // Fetch product details and set form data
+    if (id) {
       const fetchProduct = async () => {
         try {
-          const response = await apiClient.getProductById(productId);
+          const response = await apiClient.getProductById(Number(id));
           const product = response.data;
           setFormData({
             name: product.name,
@@ -43,14 +38,17 @@ export const ProductForm: React.FC<ProductFormProps> = ({
           });
         } catch (error) {
           console.error("Failed to fetch product", error);
+          setErrors(["Failed to load product"]);
         }
       };
       fetchProduct();
     }
-  }, [productId]);
+  }, [id]);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -60,6 +58,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
     e.preventDefault();
     setIsSubmitting(true);
     setErrors([]);
+    setSuccessMessage("");
 
     const validation = validateProduct(formData);
     if (!validation.isValid) {
@@ -77,95 +76,143 @@ export const ProductForm: React.FC<ProductFormProps> = ({
     };
 
     try {
-      let response;
-      if (productId) {
-        response = await apiClient.updateProduct(productId, productRequest);
+      let response: { data: ProductResponse };
+      if (isEditing) {
+        response = await apiClient.updateProduct(Number(id), productRequest);
+        setSuccessMessage("Product updated successfully!");
       } else {
         response = await apiClient.createProduct(productRequest);
+        setSuccessMessage("Product created successfully!");
       }
-      onSuccess?.(response.data);
+
+      // Redirect after success
+      setTimeout(() => {
+        navigate("/products");
+      }, 2000);
     } catch (error: any) {
-      setErrors([error.response?.data?.message || "Failed to save product"]);
+      setErrors([
+        error.response?.data?.message ||
+          `Failed to ${isEditing ? "update" : "create"} product`,
+      ]);
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const handleCancel = () => {
+    navigate("/products");
+  };
+
   return (
-    <form onSubmit={handleSubmit} data-testid="product-form">
-      {errors.length > 0 && (
-        <ul data-testid="form-errors">
-          {errors.map((error, index) => (
-            <li key={index}>{error}</li>
-          ))}
-        </ul>
+    <div data-testid="product-form-page">
+      <h1>{isEditing ? "Edit Product" : "Create Product"}</h1>
+
+      {successMessage && (
+        <div className="success-message" data-testid="success-message">
+          {successMessage}
+        </div>
       )}
-      <div>
-        <label htmlFor="name">Product Name</label>
-        <input
-          type="text"
-          id="name"
-          name="name"
-          value={formData.name}
-          onChange={handleChange}
-          data-testid="product-name-input"
-        />
-      </div>
-      <div>
-        <label htmlFor="price">Price</label>
-        <input
-          type="number"
-          id="price"
-          name="price"
-          value={formData.price}
-          onChange={handleChange}
-          data-testid="product-price-input"
-        />
-      </div>
-      <div>
-        <label htmlFor="quantity">Quantity</label>
-        <input
-          type="number"
-          id="quantity"
-          name="quantity"
-          value={formData.quantity}
-          onChange={handleChange}
-          data-testid="product-quantity-input"
-        />
-      </div>
-      <div>
-        <label htmlFor="description">Description</label>
-        <textarea
-          id="description"
-          name="description"
-          value={formData.description}
-          onChange={handleChange}
-          data-testid="product-description-input"
-        />
-      </div>
-      <div>
-        <label htmlFor="category">Category</label>
-        <input
-          type="text"
-          id="category"
-          name="category"
-          value={formData.category}
-          onChange={handleChange}
-          data-testid="product-category-input"
-        />
-      </div>
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        data-testid="submit-product"
+
+      <form
+        onSubmit={handleSubmit}
+        className="product-form"
+        data-testid="product-form"
       >
-        {isSubmitting ? "Saving..." : "Save Product"}
-      </button>
-      {onCancel && (
-        <button type="button" onClick={onCancel} data-testid="cancel-product">
-          Cancel
-        </button>
-      )}
-    </form>
+        {errors.length > 0 && (
+          <ul className="error-list" data-testid="form-errors">
+            {errors.map((error, index) => (
+              <li key={index}>{error}</li>
+            ))}
+          </ul>
+        )}
+
+        <div className="form-group">
+          <label htmlFor="name">Product Name *</label>
+          <input
+            type="text"
+            id="name"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            data-testid="product-name-input"
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="price">Price *</label>
+          <input
+            type="number"
+            id="price"
+            name="price"
+            value={formData.price}
+            onChange={handleChange}
+            data-testid="product-price-input"
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="quantity">Quantity *</label>
+          <input
+            type="number"
+            id="quantity"
+            name="quantity"
+            value={formData.quantity}
+            onChange={handleChange}
+            data-testid="product-quantity-input"
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="category">Category *</label>
+          <select
+            id="category"
+            name="category"
+            value={formData.category}
+            onChange={handleChange}
+            data-testid="product-category-input"
+          >
+            <option value="">Select a category</option>
+            <option value="Electronics">Electronics</option>
+            <option value="Books">Books</option>
+            <option value="Clothing">Clothing</option>
+            <option value="Home">Home</option>
+            <option value="Sports">Sports</option>
+          </select>
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="description">Description</label>
+          <textarea
+            id="description"
+            name="description"
+            value={formData.description}
+            onChange={handleChange}
+            rows={4}
+            data-testid="product-description-input"
+          />
+        </div>
+
+        <div className="form-actions">
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            data-testid="submit-product"
+          >
+            {isSubmitting
+              ? "Saving..."
+              : isEditing
+              ? "Update Product"
+              : "Create Product"}
+          </button>
+          <button
+            type="button"
+            onClick={handleCancel}
+            data-testid="cancel-product"
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
   );
 };

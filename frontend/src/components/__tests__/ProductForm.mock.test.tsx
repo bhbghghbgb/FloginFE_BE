@@ -1,7 +1,8 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi, type Mocked } from "vitest";
 import { apiClient } from "../../services/api";
+import { testWrapperRender } from "../../utils/test-utils";
 import { ProductForm } from "../ProductForm";
 import { createMockAxiosResponse } from "./Common";
 
@@ -26,7 +27,7 @@ describe("ProductForm Mock Testing", () => {
     const mockResponse = createMockAxiosResponse(mockProductData);
     mockApiClient.createProduct.mockResolvedValue(mockResponse);
 
-    render(<ProductForm />);
+    testWrapperRender(<ProductForm />);
 
     await userEvent.type(
       screen.getByTestId("product-name-input"),
@@ -71,7 +72,7 @@ describe("ProductForm Mock Testing", () => {
     const mockUpdateResponse = createMockAxiosResponse(updatedProduct);
     mockApiClient.updateProduct.mockResolvedValue(mockUpdateResponse);
 
-    render(<ProductForm productId={1} />);
+    testWrapperRender(<ProductForm productId={1} />);
 
     await waitFor(() => {
       expect(screen.getByTestId("product-name-input")).toHaveValue(
@@ -103,7 +104,7 @@ describe("ProductForm Mock Testing", () => {
       response: { data: { message: "Product creation failed" } },
     });
 
-    render(<ProductForm />);
+    testWrapperRender(<ProductForm />);
 
     await userEvent.type(
       screen.getByTestId("product-name-input"),
@@ -137,7 +138,7 @@ describe("ProductForm Mock Testing", () => {
     mockApiClient.createProduct.mockResolvedValue(mockResponse);
 
     const onSuccess = vi.fn();
-    render(<ProductForm onSuccess={onSuccess} />);
+    testWrapperRender(<ProductForm onSuccess={onSuccess} />);
 
     const productData = {
       name: "Test Product",

@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { LoginPage } from "./pages/LoginPage";
 
 test.describe("Login E2E Tests", () => {
@@ -10,15 +10,24 @@ test.describe("Login E2E Tests", () => {
   });
 
   test("complete login flow", async ({ page }) => {
-    // Test successful login
+    // Mock successful login response
+    await page.route("**/api/auth/login", async (route) => {
+      const json = {
+        success: true,
+        message: "Login successful",
+        token: "jwt-token",
+      };
+      await route.fulfill({ json });
+    });
+
     await loginPage.login("validuser", "validpass123");
 
-    // Verify successful login redirect or message
-    await expect(page).toHaveURL(/.*dashboard/);
-    await expect(page.locator("text=Welcome")).toBeVisible();
+    // Verify successful login redirect to dashboard
+    await expect(page).toHaveURL(/.*\/dashboard/);
+    await expect(page.locator("text=Welcome to your dashboard")).toBeVisible();
   });
 
-  test("validation messages", async () => {
+  test("validation messages", async ({ page }) => {
     // Test empty submission
     await loginPage.clickLogin();
     await expect(loginPage.usernameError).toHaveText("Username is required");
@@ -30,13 +39,21 @@ test.describe("Login E2E Tests", () => {
     await expect(loginPage.usernameError).toHaveText(/at least 3 characters/);
   });
 
-  test("error flows", async () => {
-    // Test invalid credentials
+  test("error flows", async ({ page }) => {
+    // Mock failed login response
+    await page.route("**/api/auth/login", async (route) => {
+      const json = {
+        success: false,
+        message: "Invalid credentials",
+      };
+      await route.fulfill({ status: 401, json });
+    });
+
     await loginPage.login("wronguser", "wrongpass");
     await expect(loginPage.errorMessage).toHaveText(/invalid credentials/i);
   });
 
-  test("UI elements interactions", async () => {
+  test("UI elements interactions", async ({ page }) => {
     // Test all UI elements are interactive
     await expect(loginPage.usernameInput).toBeVisible();
     await expect(loginPage.passwordInput).toBeVisible();

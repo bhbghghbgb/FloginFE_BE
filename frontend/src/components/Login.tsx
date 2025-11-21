@@ -1,92 +1,118 @@
-import React, { useState } from "react";
-import { apiClient, type LoginRequest } from "../services/api";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
+import { apiClient } from "../services/api";
 import { validatePassword, validateUsername } from "../utils/validation";
 
 export const Login: React.FC = () => {
-  const [formData, setFormData] = useState<LoginRequest>({
+  const [formData, setFormData] = useState({
     username: "",
     password: "",
   });
-  const [errors, setErrors] = useState<{
-    username?: string;
-    password?: string;
-    submit?: string;
-  }>({});
+  const [errors, setErrors] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    // Clear field error when user starts typing
-    if (errors[name as keyof typeof errors]) {
-      setErrors((prev) => ({ ...prev, [name]: undefined }));
-    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setErrors({});
+    setErrors([]);
 
     // Validate inputs
     const usernameValidation = validateUsername(formData.username);
     const passwordValidation = validatePassword(formData.password);
 
     if (!usernameValidation.isValid || !passwordValidation.isValid) {
-      setErrors({
-        username: usernameValidation.errors[0],
-        password: passwordValidation.errors[0],
-      });
+      setErrors([...usernameValidation.errors, ...passwordValidation.errors]);
       setIsSubmitting(false);
       return;
     }
 
     try {
       const response = await apiClient.login(formData);
-      localStorage.setItem("authToken", response.data.token);
-      // Redirect or show success message
-      window.location.href = "/dashboard";
+
+      if (response.data.success) {
+        login(response.data.token);
+        navigate("/dashboard");
+      } else {
+        setErrors([response.data.message]);
+      }
     } catch (error: any) {
-      setErrors({ submit: error.response?.data?.message || "Login failed" });
+      setErrors([error.response?.data?.message || "Login failed"]);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} data-testid="login-form">
-      <div>
-        <label htmlFor="username">Username</label>
-        <input
-          type="text"
-          id="username"
-          name="username"
-          value={formData.username}
-          onChange={handleChange}
-          data-testid="username-input"
-        />
-        {errors.username && (
-          <span data-testid="username-error">{errors.username}</span>
+    <div className="login-container" data-testid="login-page">
+      <h2>Login</h2>
+      <form onSubmit={handleSubmit} className="login-form">
+        {errors.length > 0 && (
+          <div className="error-message" data-testid="login-error">
+            {errors.map((error, index) => (
+              <div key={index}>{error}</div>
+            ))}
+          </div>
         )}
-      </div>
-      <div>
-        <label htmlFor="password">Password</label>
-        <input
-          type="password"
-          id="password"
-          name="password"
-          value={formData.password}
-          onChange={handleChange}
-          data-testid="password-input"
-        />
-        {errors.password && (
-          <span data-testid="password-error">{errors.password}</span>
-        )}
-      </div>
-      {errors.submit && <div data-testid="login-error">{errors.submit}</div>}
-      <button type="submit" disabled={isSubmitting} data-testid="login-button">
-        {isSubmitting ? "Logging in..." : "Login"}
-      </button>
-    </form>
+
+        <div className="form-group">
+          <label htmlFor="username">Username</label>
+          <input
+            type="text"
+            id="username"
+            name="username"
+            value={formData.username}
+            onChange={handleChange}
+            data-testid="username-input"
+          />
+          {validateUsername(formData.username).errors.map((error, index) => (
+            <div
+              key={index}
+              className="field-error"
+              data-testid="username-error"
+            >
+              {error}
+            </div>
+          ))}
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="password">Password</label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
+            data-testid="password-input"
+          />
+          {validatePassword(formData.password).errors.map((error, index) => (
+            <div
+              key={index}
+              className="field-error"
+              data-testid="password-error"
+            >
+              {error}
+            </div>
+          ))}
+        </div>
+
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="login-button"
+          data-testid="login-button"
+        >
+          {isSubmitting ? "Logging in..." : "Login"}
+        </button>
+      </form>
+    </div>
   );
 };

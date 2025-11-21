@@ -10,7 +10,3 @@ export const createMockAxiosResponse = <T,>(data: T): AxiosResponse<T> => ({
     headers: {} as AxiosResponseHeaders,
   } as any,
 });
-
-// Specific helper for login responses if needed
-export const createMockLoginResponse = (data: any) =>
-  createMockAxiosResponse(data);

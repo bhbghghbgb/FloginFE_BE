@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi, type Mocked } from "vitest";
 import { apiClient } from "../../services/api";
 import { ProductList } from "../ProductList";
@@ -28,7 +28,7 @@ describe("ProductList Mock Testing", () => {
     const mockResponse = createMockAxiosResponse({ content: mockProducts });
     mockApiClient.getProducts.mockResolvedValue(mockResponse);
 
-    render(<ProductList />);
+    testWrapperRender(<ProductList />);
 
     await waitFor(() => {
       expect(mockApiClient.getProducts).toHaveBeenCalledTimes(1);
@@ -40,7 +40,7 @@ describe("ProductList Mock Testing", () => {
     const mockResponse = createMockAxiosResponse({ content: [] });
     mockApiClient.getProducts.mockResolvedValue(mockResponse);
 
-    render(<ProductList />);
+    testWrapperRender(<ProductList />);
 
     await waitFor(() => {
       expect(mockApiClient.getProducts).toHaveBeenCalledTimes(1);
