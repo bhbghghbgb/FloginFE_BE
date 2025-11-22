@@ -24,6 +24,17 @@ jobs:
           cache: "yarn"
           cache-dependency-path: frontend/yarn.lock
 
+      # --- Backend (Maven) ---
+      - name: Setup Maven Action
+        uses: s4u/setup-maven-action@v1.19.0
+        with:
+          java-version: 21
+          maven-version: 3.9.11
+
+      # -------------------------
+      # INSTALL ALL DEPENDENCIES FIRST
+      # -------------------------
+
       - name: Install frontend dependencies
         uses: borales/actions-yarn@v5
         with:
@@ -36,22 +47,25 @@ jobs:
           cmd: run playwright install --with-deps
           dir: frontend
 
+      - name: Install backend dependencies
+        run: mvn -B dependency:resolve dependency:resolve-plugins
+        working-directory: backend
+        # New step: ensures backend deps are downloaded before tests
+
+      # -------------------------
+      # BUILD & TEST AFTER INSTALL
+      # -------------------------
+
       - name: Build & Test frontend
         uses: borales/actions-yarn@v5
         with:
           cmd: test:coverage
           dir: frontend
 
-      # --- Backend (Maven) ---
-      - name: Setup Maven Action
-        uses: s4u/setup-maven-action@v1.19.0
-        with:
-          java-version: 21
-          maven-version: 3.9.11
-
       - name: Build & Test Backend
         run: mvn -B clean test surefire-report:report-only
         working-directory: backend
+        # Added JVM args to allow Byte Buddy agent attachment on JDK 21 (fixes Mockito inline issue)
 
       # -------------------------
       # E2E TESTING (Playwright)
@@ -63,6 +77,7 @@ jobs:
           echo "BACKEND_PID=$!" >> $GITHUB_ENV
           sleep 10
         working-directory: backend
+        # Added JVM args here too for consistency
 
       - name: Run Playwright tests
         uses: borales/actions-yarn@v5
