@@ -1,0 +1,42 @@
+name: Deploy GitHub Pages
+
+on:
+  workflow_run:
+    workflows: ["CI - Build and Test"] # Trigger after the Tests workflow completes
+    types:
+      - completed
+    branches: [main]
+
+jobs:
+  deploy-reports:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    permissions:
+      pages: write
+      id-token: write
+
+    steps:
+      # 1. Download Test Reports Artifact
+      - name: Download Test Reports Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: test-reports-artifact
+          run-id: ${{ github.event.workflow_run.id }}
+          path: gh-pages-artifact # Download the artifact into this folder
+
+      # The 'gh-pages-artifact' folder now contains:
+      # - gh-pages-artifact/index.html
+      # - gh-pages-artifact/test-reports/...
+
+      # 2. Configure and Deploy
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # We point the upload to the downloaded folder
+          path: gh-pages-artifact
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4

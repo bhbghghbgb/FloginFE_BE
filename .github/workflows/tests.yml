@@ -1,0 +1,119 @@
+name: CI - Build and Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    # This job performs all the heavy lifting and generates files
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      # --- Setup Node / Yarn + Cache ---
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "yarn"
+          cache-dependency-path: frontend/yarn.lock
+
+      - name: Install frontend dependencies
+        uses: borales/actions-yarn@v5
+        with:
+          cmd: install --immutable
+          dir: frontend
+
+      - name: Install browsers
+        uses: borales/actions-yarn@v5
+        with:
+          cmd: run playwright install --with-deps
+          dir: frontend
+
+      - name: Build & Test frontend
+        uses: borales/actions-yarn@v5
+        with:
+          cmd: test:coverage
+          dir: frontend
+
+      # --- Backend (Maven) ---
+      - name: Setup Maven Action
+        uses: s4u/setup-maven-action@v1.19.0
+        with:
+          java-version: 21
+          maven-version: 3.9.11
+
+      - name: Build & Test Backend
+        run: mvn -B clean test surefire-report:report-only
+        working-directory: backend
+
+      # -------------------------
+      # E2E TESTING (Playwright)
+      # -------------------------
+      - name: Start Backend
+        run: |
+          mvn -q -DskipTests package
+          java -jar target/*.jar --spring.profiles.active=e2e &
+          echo "BACKEND_PID=$!" >> $GITHUB_ENV
+          sleep 10
+        working-directory: backend
+
+      - name: Run Playwright tests
+        uses: borales/actions-yarn@v5
+        with:
+          cmd: run playwright test --reporter=html
+          dir: frontend
+
+      - name: Stop Backend
+        if: always()
+        run: kill ${{ env.BACKEND_PID }}
+
+  collect-reports:
+    runs-on: ubuntu-latest
+    # Ensure this job only runs AFTER the tests are successful
+    needs: [build-and-test]
+    if: success() || failure() # Run even if tests fail, so we can see the reports
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # -------------------------
+      # COLLECT REPORTS
+      # -------------------------
+      - name: Create Test Reports Directory Structure
+        run: |
+          # Use a dedicated root folder for the pages content
+          mkdir -p pages-content/test-reports/backend
+          mkdir -p pages-content/test-reports/frontend
+          mkdir -p pages-content/test-reports/e2e
+
+        # Note: We still use the original report paths from the build-and-test job
+        # because the current working directory contains the files from the clone.
+        # The key is to organize them under the new 'pages-content' structure.
+      - name: Copy Backend and Frontend Reports
+        run: |
+          cp -r backend/target/site/jacoco pages-content/test-reports/backend/jacoco
+          cp backend/target/reports pages-content/test-reports/backend/surefire
+          cp -r backend/target/surefire-reports pages-content/test-reports/backend/raw-surefire
+
+          cp -r frontend/coverage pages-content/test-reports/frontend/
+          cp -r frontend/playwright-report pages-content/test-reports/e2e/
+
+      # --- Copy Index Page for Reports (Your provided file) ---
+      - name: Copy Test Reports Index Page
+        run: |
+          # This copies the index file directly to the root of the artifact
+          cp test-results-index.html pages-content/index.html
+
+      # --- Upload Regular Artifact ---
+      - name: Upload Test Reports Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports-artifact
+          path: pages-content # Upload the entire staging folder

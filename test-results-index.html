@@ -1,27 +1,42 @@
 <!DOCTYPE html>
-<html>
-
-<head>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
     <title>Test Reports</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 40px;
-        }
-
-        a {
-            font-size: 20px;
-            display: block;
-            margin-bottom: 10px;
-        }
+      body {
+        font-family: Arial, sans-serif;
+        padding: 30px;
+      }
+      h1 {
+        margin-bottom: 1em;
+      }
+      a {
+        display: block;
+        margin: 0.5em 0;
+        font-size: 18px;
+      }
     </style>
-</head>
-
-<body>
+  </head>
+  <body>
     <h1>Test Reports</h1>
-    <a href="./test-reports/backend/index.html">Backend Reports</a>
-    <a href="./test-reports/frontend/coverage/index.html">Frontend Coverage</a>
-    <a href="./test-reports/e2e/playwright-report/index.html">Playwright E2E</a>
-</body>
 
+    <h2>Backend</h2>
+    <a href="./test-reports/backend/surefire/surefire.html"
+      >Unit / Integration Tests Report (Surefire)</a
+    >
+    <a href="./test-reports/backend/jacoco/jacoco.html"
+      >Coverage Report (JaCoCo)</a
+    >
+
+    <h2>Frontend</h2>
+    <a href="./test-reports/frontend/coverage/index.html"
+      >Vitest Coverage Report</a
+    >
+
+    <h2>E2E (Playwright)</h2>
+    <a href="./test-reports/e2e/playwright-report/index.html"
+      >Playwright HTML Report</a
+    >
+  </body>
 </html>
