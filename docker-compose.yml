@@ -1,49 +1,46 @@
-services:
-  db:
-    image: postgres:15
-    container_name: flogin_db
-    restart: always
-    environment:
-      POSTGRES_DB: softwaretestingfloginfebe
-      POSTGRES_USER: appuser
-      POSTGRES_PASSWORD: secret123
-    ports:
-      - "5432:5432"
-    volumes:
-      - flogin_db:/var/lib/postgresql/data
-    networks:
-      - app-network
+version: '3.8'
 
+services:
+  # -----------------------------------------------------------------
+  # BACKEND SERVICE (Spring Boot)
+  # -----------------------------------------------------------------
   backend:
-    build: ./backend
-    container_name: flogin_be
-    restart: always
+    # Use the build context defined in backend/
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    # Always restart unless explicitly stopped
+    restart: "always"
+    # Map container port 8080 to host port 8080 for E2E testing and local access
     ports:
       - "8080:8080"
-    depends_on:
-      - db
+    # E2E tests need a clean database, so we activate the 'e2e' profile
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/softwaretestingfloginfebe
-      SPRING_DATASOURCE_USERNAME: appuser
-      SPRING_DATASOURCE_PASSWORD: secret123
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
-      SPRING_PROFILES_ACTIVE: docker
-    networks:
-      - app-network
-
+      - SPRING_PROFILES_ACTIVE=e2e
+      # In E2E, we use H2 for speed and simplicity.
+      - SPRING_DATASOURCE_URL=jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;
+    # Healthcheck ensures the service is ready before E2E tests start
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      
+  # -----------------------------------------------------------------
+  # FRONTEND SERVICE (Vite/React)
+  # -----------------------------------------------------------------
   frontend:
-    build: ./frontend
-    container_name: flogin_fe
+    # Use the build context defined in frontend/
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: "always"
     ports:
-      - "3000:80"
+      - "3000:3000"
+    environment:
+      # This is crucial for E2E tests: the frontend must know how to talk to the backend
+      # In the Docker Compose network, services find each other by their service name ('backend')
+      - VITE_API_BASE_URL=http://backend:8080/api
     depends_on:
-      - backend
-    networks:
-      - app-network
-
-networks:
-  app-network:
-    driver: bridge
-
-volumes:
-  flogin_db:
+      backend:
+        condition: service_healthy # Wait for backend to be fully healthy

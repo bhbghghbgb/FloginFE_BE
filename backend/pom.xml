@@ -89,6 +89,10 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
         <!-- https://mvnrepository.com/artifact/org.springdoc/springdoc-openapi-starter-webmvc-ui -->
         <dependency>
             <groupId>org.springdoc</groupId>
@@ -145,7 +149,27 @@
 					</excludes>
 				</configuration>
 			</plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <!-- Unit tests are run during the 'test' phase -->
+            </plugin>
 		</plugins>
 	</build>
 
+    <!-- Configure the reporting section to generate HTML -->
+    <reporting>
+        <plugins>
+            <!-- Surefire Report Plugin (Generates HTML for Unit Tests) -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-report-plugin</artifactId>
+                <configuration>
+                    <!-- Output reports to a specific folder outside of the default 'site' -->
+                    <outputDirectory>${project.build.directory}/test-reports/surefire-html</outputDirectory>
+                    <outputName>unit-test-report</outputName>
+                </configuration>
+            </plugin>
+        </plugins>
+    </reporting>
 </project>
