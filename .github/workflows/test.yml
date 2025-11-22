@@ -1,102 +1,125 @@
-name: CI/CD Pipeline
+name: Full-Stack CI/CD
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-    
-    # Define service environment variables for all steps
-    env:
-      # Use H2 for fast, in-memory testing
-      SPRING_PROFILES_ACTIVE: e2e
-      SPRING_DATASOURCE_URL: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      # --- 1. BUILD DOCKER IMAGES ---
-      - name: Build Docker Images (Backend & Frontend)
-        # Use docker-compose to build the multi-stage images
-        run: docker-compose build
+      - name: Enable Corepack
+        run: corepack enable
 
-      # --- 2. START SERVICES FOR E2E ---
-      - name: Start Services (Backend and Frontend)
-        # Use -d for detached mode, and --wait for healthchecks
-        run: docker-compose up -d --wait
+      # --- Setup Node / Yarn + Cache ---
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "yarn" # enable Yarn caching
+          cache-dependency-path: frontend/yarn.lock
+          
 
-      # --- 3. BACKEND UNIT & REPORTING (Runs inside the container) ---
-      # We use 'docker exec' to run Maven commands inside the built backend container
-      - name: Run Backend Unit Tests and Generate XML Reports
-        # The 'test' phase runs the tests, creating XML files in target/surefire-reports
-        run: docker exec -w /app backend mvn clean test
+      - name: Install frontend dependencies
+        uses: borales/actions-yarn@v5
+        with:
+          cmd: install --immutable
+          dir: frontend
 
-      - name: Generate Backend HTML Reports (Surefire & Failsafe)
-        # Run the 'report-only' goal to convert the XML reports into HTML
+      - name: Build & Test frontend
+        uses: borales/actions-yarn@v5
+        with:
+          cmd: test:coverage
+          dir: frontend
+
+
+      # --- Cache Yarn modules (already covered by setup-node) ---
+      # No separate cache step needed if using setup-node cache
+
+      # --- Backend (Maven) Cache Restore ---
+      - uses: skjolber/maven-cache-github-action@v3.1.1
+        with:
+          step: restore
+
+      - name: Build & Test Backend
+        run: mvn -B clean test surefire-report:report-only
+        working-directory: backend
+
+      # --- Backend (Maven) Cache Save ---
+      - uses: skjolber/maven-cache-github-action@v3.1.1
+        with:
+          step: save
+
+      # -------------------------
+      # E2E TESTING (Playwright)
+      # -------------------------
+      - name: Install browsers
+        run: yarn playwright install --with-deps
+        working-directory: frontend
+
+      - name: Start Backend
         run: |
-          docker exec -w /app backend mvn surefire-report:report-only
-          docker exec -w /app backend mvn failsafe-report:report-only
+          mvn -q -DskipTests package
+          java -jar target/*.jar --spring.profiles.active=e2e &
+          echo "BACKEND_PID=$!" >> $GITHUB_ENV
+          sleep 10
+        working-directory: backend
 
-      # --- 4. FRONTEND E2E TESTS (Runs on host, targeting Docker services) ---
-      - name: Install Frontend Dependencies
-        run: npm ci
-        working-directory: ./frontend
+      - name: Run Playwright tests
+        run: yarn playwright test --reporter=html
+        working-directory: frontend
 
-      - name: Run Frontend E2E Tests (Playwright)
-        # Playwright calls the backend on localhost:8080 (exposed port)
-        # Playwright reports go to frontend/playwright-report
-        run: npx playwright test
-        working-directory: ./frontend
+      - name: Stop Backend
+        if: always()
+        run: kill ${{ env.BACKEND_PID }}
 
-      # --- 5. COLLECT AND ARTIFACT REPORTS ---
-      - name: Create Unified Report Directory
+      # -------------------------
+      # COLLECT REPORTS
+      # -------------------------
+      - name: Create GH Pages directory
         run: |
-          mkdir -p gh-pages-reports/test-results/backend
-          mkdir -p gh-pages-reports/test-results/frontend
+          mkdir -p gh-pages-reports/test-reports/backend
+          mkdir -p gh-pages-reports/test-reports/frontend
+          mkdir -p gh-pages-reports/test-reports/e2e
 
-      - name: Copy Backend HTML Reports
-        # Copy reports from the *running container* to the host filesystem
+      # Backend reports
+      - name: Copy backend reports
         run: |
-          # Copy Surefire reports (Unit Tests)
-          docker cp $(docker-compose ps -q backend):/app/target/test-reports/surefire-html/. gh-pages-reports/test-results/backend
-          # Copy Failsafe reports (Integration Tests)
-          docker cp $(docker-compose ps -q backend):/app/target/test-reports/failsafe-html/. gh-pages-reports/test-results/backend
+          cp -r backend/target/site/* gh-pages-reports/test-reports/backend/
 
-      - name: Copy Frontend HTML Reports (Playwright)
-        # Playwright reports are already on the host filesystem (frontend/playwright-report)
+      # Frontend Vitest coverage
+      - name: Copy frontend reports
         run: |
-          cp -r frontend/playwright-report/. gh-pages-reports/test-results/frontend/
+          cp -r frontend/coverage gh-pages-reports/test-reports/frontend/
 
-      - name: Create Index Page for GitHub Pages
-        run: cp test-results-index.html gh-pages-reports/index.html
-      
-      - name: Upload Report Artifact for GitHub Pages
+      # Playwright
+      - name: Copy Playwright reports
+        run: |
+          cp -r frontend/playwright-report gh-pages-reports/test-reports/e2e/
+
+      # Index page
+      - name: Upload custom index
+        run: |
+          cp test-results-index.html gh-pages-reports/index.html
+
+      - name: Upload report artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # This is the directory that will be served by GitHub Pages
-          path: 'gh-pages-reports'
+          path: gh-pages-reports
 
-  # --- 6. DEPLOY REPORTS TO GITHUB PAGES ---
   deploy-reports:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
     needs: build-and-test
-    # Grant GITHUB_TOKEN the needed permissions for deployment
+    runs-on: ubuntu-latest
     permissions:
       pages: write
       id-token: write
-      contents: read
-    
+
     steps:
-      - name: Deploy to GitHub Pages
+      - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4

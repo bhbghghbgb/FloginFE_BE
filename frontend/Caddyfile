@@ -1,0 +1,20 @@
+:3000 {
+
+	# Serve static files from /usr/share/caddy (default location in Caddy image)
+	root * /usr/share/caddy
+
+	# Enable file server
+	file_server
+
+	# SPA fallback — any route not matching an existing file returns index.html
+	try_files {path} /index.html
+
+	# Optional: Enable access logging
+	log {
+		output stdout
+		format single_field common_log
+	}
+
+	# Optional: gzip / zstd compression
+	encode gzip zstd
+}

@@ -2,13 +2,13 @@ import "@testing-library/jest-dom";
 import { afterAll, afterEach, beforeAll, vi } from "vitest";
 import { server } from "./mocks/server";
 
-const localStorageMock = {
-  getItem: vi.fn(),
-  setItem: vi.fn(),
-  removeItem: vi.fn(),
-  clear: vi.fn(),
-};
-global.localStorage = localStorageMock as any;
+// const localStorageMock = {
+//   getItem: vi.fn(),
+//   setItem: vi.fn(),
+//   removeItem: vi.fn(),
+//   clear: vi.fn(),
+// };
+// global.localStorage = localStorageMock as any;
 
 const mockLocation = {
   // Methods to spy on

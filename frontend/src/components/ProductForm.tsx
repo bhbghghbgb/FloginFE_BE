@@ -78,10 +78,10 @@ export const ProductForm: React.FC = () => {
       let response: { data: ProductResponse };
       if (isEditing) {
         response = await apiClient.updateProduct(Number(id), productRequest);
-        setSuccessMessage("Product updated successfully!");
+        setSuccessMessage(`Product updated successfully!: ${response}`);
       } else {
         response = await apiClient.createProduct(productRequest);
-        setSuccessMessage("Product created successfully!");
+        setSuccessMessage(`Product created successfully!: ${response}`);
       }
 
       // Redirect after success
