@@ -54,9 +54,8 @@ jobs:
           dir: frontend
 
       - name: Install backend dependencies
-        run: ./mvnw -B dependency:resolve dependency:resolve-plugins
+        run: mvn -B dependency:resolve dependency:resolve-plugins
         working-directory: backend
-        # New step: ensures backend deps are downloaded before tests
 
       # -------------------------
       # BUILD & TEST AFTER INSTALL
@@ -69,7 +68,7 @@ jobs:
           dir: frontend
 
       - name: Build & Test Backend
-        run: ./mvnw -B test surefire-report:report-only
+        run: mvn -B test surefire-report:report-only
         working-directory: backend
 
       # -------------------------
@@ -77,12 +76,11 @@ jobs:
       # -------------------------
       - name: Start Backend
         run: |
-          ./mvnw -q -DskipTests package
+          mvn -q -DskipTests package
           java -jar target/*.jar --spring.profiles.active=e2e &
           echo "BACKEND_PID=$!" >> $GITHUB_ENV
           sleep 10
         working-directory: backend
-        # Added JVM args here too for consistency
 
       - name: Run Playwright tests
         uses: borales/actions-yarn@v5
@@ -94,46 +92,74 @@ jobs:
         if: always()
         run: kill ${{ env.BACKEND_PID }}
 
+      - name: Upload Backend Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-reports
+          path: |
+            backend/target/site/jacoco
+            backend/target/reports
+            backend/target/surefire-reports
+
+      - name: Upload Frontend Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-reports
+          path: frontend/coverage
+
+      - name: Upload E2E Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-reports
+          path: frontend/playwright-report
+
   collect-reports:
     runs-on: ubuntu-latest
-    # Ensure this job only runs AFTER the tests are successful
     needs: [build-and-test]
-    if: success() || failure() # Run even if tests fail, so we can see the reports
-
+    if: success() || failure()
     steps:
-      - uses: actions/checkout@v4
+      # --- Download artifacts from previous job ---
+      - name: Download Backend Reports
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-reports
+          path: backend
+
+      - name: Download Frontend Reports
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-reports
+          path: frontend
+
+      - name: Download E2E Reports
+        uses: actions/download-artifact@v4
+        with:
+          name: e2e-reports
+          path: e2e
 
       # -------------------------
       # COLLECT REPORTS
       # -------------------------
       - name: Create Test Reports Directory Structure
         run: |
-          # Use a dedicated root folder for the pages content
           mkdir -p pages-content/test-reports/backend
           mkdir -p pages-content/test-reports/frontend
           mkdir -p pages-content/test-reports/e2e
 
-        # Note: We still use the original report paths from the build-and-test job
-        # because the current working directory contains the files from the clone.
-        # The key is to organize them under the new 'pages-content' structure.
       - name: Copy Backend and Frontend Reports
         run: |
-          cp -r backend/target/site/jacoco pages-content/test-reports/backend/jacoco || true
-          cp backend/target/reports pages-content/test-reports/backend/surefire || true
-          cp -r backend/target/surefire-reports pages-content/test-reports/backend/raw-surefire || true
+          cp -r backend/site/jacoco pages-content/test-reports/backend/jacoco || true
+          cp -r backend/reports pages-content/test-reports/backend/surefire || true
+          cp -r backend/surefire-reports pages-content/test-reports/backend/raw-surefire || true
 
           cp -r frontend/coverage pages-content/test-reports/frontend/ || true
-          cp -r frontend/playwright-report pages-content/test-reports/e2e/ || true
+          cp -r e2e/playwright-report pages-content/test-reports/e2e/ || true
 
-      # --- Copy Index Page for Reports (Your provided file) ---
       - name: Copy Test Reports Index Page
-        run: |
-          # This copies the index file directly to the root of the artifact
-          cp test-results-index.html pages-content/index.html
+        run: cp test-results-index.html pages-content/index.html
 
-      # --- Upload Regular Artifact ---
       - name: Upload Test Reports Artifact
         uses: actions/upload-artifact@v4
         with:
           name: test-reports-artifact
-          path: pages-content # Upload the entire staging folder
+          path: pages-content
