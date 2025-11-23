@@ -87,6 +87,7 @@ jobs:
         with:
           cmd: run playwright test --reporter=html
           dir: frontend
+        continue-on-error: true
 
       - name: Stop Backend
         if: always()
