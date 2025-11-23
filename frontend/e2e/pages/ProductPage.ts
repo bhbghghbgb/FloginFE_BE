@@ -46,7 +46,7 @@ export class ProductPage {
   }
 
   async fillCategory(category: string) {
-    await this.categoryInput.fill(category);
+    await this.categoryInput.selectOption(category);
   }
 
   async fillDescription(description: string) {

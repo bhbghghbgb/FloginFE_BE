@@ -57,7 +57,7 @@ export const ProductDetail: React.FC = () => {
           </Link>
           <button
             onClick={handleDelete}
-            data-testid="delete-product"
+            data-testid={`delete-product-${product.id}`}
             className="delete-button"
           >
             Delete Product

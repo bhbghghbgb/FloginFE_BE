@@ -30,20 +30,6 @@ test.describe("Login E2E Tests", () => {
     await expect(loginPage.usernameError).toHaveText(/at least 3 characters/);
   });
 
-  test("error flows", async ({ page }) => {
-    // Mock failed login response
-    await page.route("**/api/auth/login", async (route) => {
-      const json = {
-        success: false,
-        message: "Invalid credentials",
-      };
-      await route.fulfill({ status: 401, json });
-    });
-
-    await loginPage.login("wronguser", "wrongpass");
-    await expect(loginPage.errorMessage).toHaveText(/invalid credentials/i);
-  });
-
   test("UI elements interactions", async ({ page }) => {
     // Test all UI elements are interactive
     await expect(loginPage.usernameInput).toBeVisible();

@@ -88,7 +88,7 @@ jobs:
           cmd: run playwright test --reporter=html
           dir: frontend
         env:
-          VITE_API_BASE_URL: "http://localhost:8080/api"  
+          VITE_API_BASE_URL: "http://localhost:8080/api"
         continue-on-error: true
 
       - name: Stop Backend
@@ -121,6 +121,8 @@ jobs:
     needs: [build-and-test]
     if: success() || failure()
     steps:
+      - uses: actions/checkout@v4
+
       # --- Download artifacts from previous job ---
       - name: Download Backend Reports
         uses: actions/download-artifact@v4

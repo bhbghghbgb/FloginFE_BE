@@ -1,9 +1,9 @@
 import React, {
-    createContext,
-    useContext,
-    useEffect,
-    useState,
-    type ReactNode,
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
 } from "react";
 
 interface AuthContextType {
@@ -11,6 +11,7 @@ interface AuthContextType {
   token: string | null;
   login: (token: string) => void;
   logout: () => void;
+  initializing: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -20,6 +21,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [token, setToken] = useState<string | null>(null);
+  const [initializing, setInitializing] = useState(true);
 
   useEffect(() => {
     // Check for existing token on app load
@@ -28,6 +30,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       setToken(savedToken);
       setIsAuthenticated(true);
     }
+    setInitializing(false); // <-- auth is fully loaded
   }, []);
 
   const login = (newToken: string) => {
@@ -43,7 +46,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, token, login, logout }}>
+    <AuthContext.Provider
+      value={{ isAuthenticated, token, login, logout, initializing }}
+    >
       {children}
     </AuthContext.Provider>
   );

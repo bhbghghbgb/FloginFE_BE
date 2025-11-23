@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, Page, test } from "@playwright/test";
 import { ProductPage } from "./pages/ProductPage";
 import { loginAndSaveState } from "./utils";
 
@@ -26,24 +26,30 @@ test.describe("Product E2E Tests", () => {
     await expect(productPage.successMessage).toBeVisible();
   });
 
-  test("read/list products", async () => {
+  test("read/list products", async ({ page }) => {
     await expect(productPage.productList).toBeVisible();
-    await expect(productPage.getProductItem(1)).toBeVisible();
+
+    const productId = await getFirstProductId(page);
+    await expect(productPage.getProductItem(productId)).toBeVisible();
   });
 
-  test("update product", async () => {
-    await productPage.clickEditProduct(1);
+  test("update product", async ({ page }) => {
+    const productId = await getFirstProductId(page);
+    await productPage.clickEditProduct(productId);
     await productPage.fillProductName("Updated Product");
     await productPage.clickSave();
 
     await expect(productPage.successMessage).toBeVisible();
   });
 
-  test("delete product", async () => {
-    await productPage.clickDeleteProduct(1);
-    await productPage.confirmDelete();
+  test("delete product", async ({ page }) => {
+    // Accept window.confirm in the browser
+    page.once("dialog", (dialog) => dialog.accept());
 
-    await expect(productPage.successMessage).toBeVisible();
+    const productId = await getFirstProductId(page);
+    await productPage.clickDeleteProduct(productId);
+
+    await expect(page.getByTestId(`product-${productId}`)).toHaveCount(0);
   });
 
   test("search/filter functionality", async () => {
@@ -54,3 +60,12 @@ test.describe("Product E2E Tests", () => {
     // Add more assertions based on expected filtered results
   });
 });
+
+async function getFirstProductId(page: Page): Promise<number> {
+  const firstProductElement = page.getByTestId(/^product-\d+$/).first();
+
+  const attr = await firstProductElement.getAttribute("data-testid");
+  if (!attr) throw new Error("No product found");
+
+  return Number(attr.replace("product-", ""));
+}
