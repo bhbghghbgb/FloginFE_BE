@@ -22,9 +22,9 @@ public class ProductServiceImpl implements IProductService {
     // --- Create product ---
     @Transactional
     public ProductResponse createProduct(ProductRequest request) {
-        // if (productRepository.existsByName(request.getName())) {
-        // throw new IllegalArgumentException("Product with this name already exists");
-        // }
+        if (productRepository.existsByName(request.getName())) {
+            throw new IllegalArgumentException("Product with this name already exists");
+        }
 
         Product product = Product.builder()
                 .name(request.getName())
@@ -46,10 +46,8 @@ public class ProductServiceImpl implements IProductService {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> EntityNotFoundException.forId(Product.class, id));
         // Nếu đổi tên, kiểm tra trùng
-        if (!product.getName().equalsIgnoreCase(request.getName()) /*
-                                                                    * &&
-                                                                    * productRepository.existsByName(request.getName())
-                                                                    */) {
+        if (!product.getName().equalsIgnoreCase(request.getName())
+                && productRepository.existsByName(request.getName())) {
             throw new IllegalArgumentException("Product with this name already exists");
         }
 
