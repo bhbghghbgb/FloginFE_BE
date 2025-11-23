@@ -87,6 +87,8 @@ jobs:
         with:
           cmd: run playwright test --reporter=html
           dir: frontend
+        env:
+          VITE_API_BASE_URL: "http://localhost:8080/api"  
         continue-on-error: true
 
       - name: Stop Backend

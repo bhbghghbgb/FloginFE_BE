@@ -76,11 +76,14 @@ class ApiClient {
     );
   }
 
-  // Auth methods
+  // Auth method
   async login(
     credentials: LoginRequest
   ): Promise<AxiosResponse<LoginResponse>> {
-    return this.client.post<LoginResponse>("/auth/login", credentials);
+    return this.client.post<LoginResponse>(
+      import.meta.env.VITE_API_BASE_URL + "/auth/login",
+      credentials
+    );
   }
 
   // Product methods
@@ -90,28 +93,40 @@ class ApiClient {
     page?: number;
     size?: number;
   }): Promise<AxiosResponse<{ content: ProductResponse[] }>> {
-    return this.client.get("/products", { params });
+    return this.client.get(import.meta.env.VITE_API_BASE_URL + "/products", {
+      params,
+    });
   }
 
   async getProductById(id: number): Promise<AxiosResponse<ProductResponse>> {
-    return this.client.get(`/products/${id}`);
+    return this.client.get(
+      import.meta.env.VITE_API_BASE_URL + `/products/${id}`
+    );
   }
 
   async createProduct(
     product: ProductRequest
   ): Promise<AxiosResponse<ProductResponse>> {
-    return this.client.post("/products", product);
+    return this.client.post(
+      import.meta.env.VITE_API_BASE_URL + "/products",
+      product
+    );
   }
 
   async updateProduct(
     id: number,
     product: ProductRequest
   ): Promise<AxiosResponse<ProductResponse>> {
-    return this.client.put(`/products/${id}`, product);
+    return this.client.put(
+      import.meta.env.VITE_API_BASE_URL + `/products/${id}`,
+      product
+    );
   }
 
   async deleteProduct(id: number): Promise<AxiosResponse<void>> {
-    return this.client.delete(`/products/${id}`);
+    return this.client.delete(
+      import.meta.env.VITE_API_BASE_URL + `/products/${id}`
+    );
   }
 }
 
