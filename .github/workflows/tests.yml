@@ -128,19 +128,19 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: backend-reports
-          path: backend
+          path: downloaded-artifacts/backend
 
       - name: Download Frontend Reports
         uses: actions/download-artifact@v4
         with:
           name: frontend-reports
-          path: frontend
+          path: downloaded-artifacts/frontend
 
       - name: Download E2E Reports
         uses: actions/download-artifact@v4
         with:
           name: e2e-reports
-          path: e2e
+          path: downloaded-artifacts/e2e
 
       # -------------------------
       # COLLECT REPORTS
@@ -153,15 +153,15 @@ jobs:
 
       - name: Copy Backend and Frontend Reports
         run: |
-          cp -r backend/site/jacoco pages-content/test-reports/backend/jacoco || true
-          cp -r backend/reports pages-content/test-reports/backend/surefire || true
-          cp -r backend/surefire-reports pages-content/test-reports/backend/raw-surefire || true
+          cp -r downloaded-artifacts/backend/site/jacoco pages-content/test-reports/backend/jacoco || true
+          cp -r downloaded-artifacts/backend/reports pages-content/test-reports/backend/surefire || true
+          cp -r downloaded-artifacts/backend/surefire-reports pages-content/test-reports/backend/raw-surefire || true
 
-          cp -r frontend/coverage pages-content/test-reports/frontend/ || true
-          cp -r e2e/playwright-report pages-content/test-reports/e2e/ || true
+          cp -r downloaded-artifacts/frontend/* pages-content/test-reports/frontend/ || true
+          cp -r downloaded-artifacts/e2e/* pages-content/test-reports/e2e/ || true
 
       - name: Copy Test Reports Index Page
-        run: cp test-results-index.html pages-content/index.html
+        run: cp test-results-index.html pages-content/test-results-index.html
 
       - name: Upload Test Reports Artifact
         uses: actions/upload-artifact@v4
