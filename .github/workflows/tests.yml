@@ -37,6 +37,12 @@ jobs:
         with:
           maven-version: 3.9.11
 
+      - name: Cache Playwright Browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-browsers-${{ runner.os }}-${{ hashFiles('frontend/yarn.lock') }}
+
       # -------------------------
       # INSTALL ALL DEPENDENCIES FIRST
       # -------------------------
