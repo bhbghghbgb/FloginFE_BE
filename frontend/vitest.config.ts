@@ -9,5 +9,6 @@ export default mergeConfig(
   defineConfig({
     // You can put any test-only overrides here if needed,
     // but typically leaving it empty works as it inherits the 'test' block from vite.config.ts
+    test: { reporters: ["default", "html"] },
   })
 );

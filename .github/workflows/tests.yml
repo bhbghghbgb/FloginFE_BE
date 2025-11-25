@@ -64,7 +64,7 @@ jobs:
       - name: Build & Test frontend
         uses: borales/actions-yarn@v5
         with:
-          cmd: test:coverage
+          cmd: test
           dir: frontend
 
       - name: Build & Test Backend
@@ -85,7 +85,7 @@ jobs:
       - name: Run Playwright tests
         uses: borales/actions-yarn@v5
         with:
-          cmd: run playwright test --reporter=html
+          cmd: test:e2e
           dir: frontend
         env:
           VITE_API_BASE_URL: "http://localhost:8080/api"
@@ -108,13 +108,16 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: frontend-reports
-          path: frontend/coverage
+          path: |
+            frontend/coverage
+            frontend/html
 
       - name: Upload E2E Reports
         uses: actions/upload-artifact@v4
         with:
           name: e2e-reports
-          path: frontend/playwright-report
+          path: |
+            frontend/playwright-report
 
   collect-reports:
     runs-on: ubuntu-latest
@@ -157,8 +160,9 @@ jobs:
           cp -r downloaded-artifacts/backend/reports pages-content/test-reports/backend/surefire || true
           cp -r downloaded-artifacts/backend/surefire-reports pages-content/test-reports/backend/raw-surefire || true
 
-          cp -r downloaded-artifacts/frontend/* pages-content/test-reports/frontend/ || true
-          cp -r downloaded-artifacts/e2e/* pages-content/test-reports/e2e/ || true
+          cp -r downloaded-artifacts/frontend/coverage pages-content/test-reports/frontend/coverage || true
+          cp -r downloaded-artifacts/frontend/html pages-content/test-reports/frontend/html || true
+          cp -r downloaded-artifacts/e2e/playwright-report pages-content/test-reports/e2e/playwright-report || true
 
       - name: Copy Test Reports Index Page
         run: cp test-results-index.html pages-content/test-results-index.html
