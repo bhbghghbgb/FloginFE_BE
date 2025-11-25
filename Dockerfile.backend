@@ -1,0 +1,41 @@
+# Stage 1: Build the Java application using Maven
+# We use an official Maven image with Java 21 on a lightweight Alpine base.
+FROM maven:3.9.6-eclipse-temurin-21-alpine AS build
+
+# Set the working directory inside the container
+WORKDIR /app/backend
+
+# Copy the pom.xml and source code. Copying the pom.xml first allows Docker to
+# cache the dependency download step if only source files change.
+COPY backend/pom.xml .
+COPY backend/src ./src
+
+# Build the project. We skip tests here because testing happens in CI,
+# and we only want to produce the runnable JAR file.
+# The resulting JAR will be in target/
+RUN mvn -B package -DskipTests
+
+# --- Stage 2: Create the minimal Runtime Image ---
+
+# Use a smaller JRE (Java Runtime Environment) image for the final, production container.
+# This keeps the final image size minimal and reduces the attack surface.
+FROM eclipse-temurin:21-jre-alpine
+
+# Set the volume name for the application.
+ENV APP_HOME=/usr/app
+
+# Create the application directory
+RUN mkdir $APP_HOME
+
+# Copy the generated executable JAR from the 'build' stage into the runtime image.
+# We assume the JAR name pattern is similar to what Maven generates (e.g., 'backend-1.0-SNAPSHOT.jar').
+# The 'ls' command is used to dynamically find the exact JAR name.
+COPY --from=build /app/backend/target/*.jar $APP_HOME/app.jar
+
+# Define the default port the Spring Boot application runs on.
+EXPOSE 8080
+
+# The command to run the application when the container starts.
+# The `java -jar` command executes the Spring Boot application.
+# Note: We do NOT need to set spring.profiles.active=e2e here, as this is for production.
+ENTRYPOINT ["java", "-jar", "/usr/app/app.jar"]
