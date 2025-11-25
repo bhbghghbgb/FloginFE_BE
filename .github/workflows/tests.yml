@@ -117,7 +117,7 @@ jobs:
         with:
           name: e2e-reports
           path: |
-            frontend/playwright-report
+            frontend/playwright-report/**
 
   collect-reports:
     runs-on: ubuntu-latest
