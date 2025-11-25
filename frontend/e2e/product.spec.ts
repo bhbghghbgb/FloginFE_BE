@@ -16,7 +16,9 @@ test.describe("Product E2E Tests", () => {
 
   test("create product flow", async () => {
     await productPage.clickCreateProduct();
-    await productPage.fillProductName("New Product");
+    await productPage.fillProductName(
+      "New Product " + Date.now().toLocaleString()
+    );
     await productPage.fillPrice("100");
     await productPage.fillQuantity("10");
     await productPage.fillCategory("Electronics");
@@ -36,7 +38,9 @@ test.describe("Product E2E Tests", () => {
   test("update product", async ({ page }) => {
     const productId = await getFirstProductId(page);
     await productPage.clickEditProduct(productId);
-    await productPage.fillProductName("Updated Product");
+    await productPage.fillProductName(
+      "Updated Product" + Date.now().toLocaleString()
+    );
     await productPage.clickSave();
 
     await expect(productPage.successMessage).toBeVisible();
