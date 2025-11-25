@@ -112,13 +112,14 @@ jobs:
             frontend/coverage
             frontend/html
 
+      - run: mkdir tmp-dir && mv playwright-report tmp-dir/ && mv tmp-dir playwright-report
+        working-directory: frontend
       - name: Upload E2E Reports
         uses: actions/upload-artifact@v4
         with:
           name: e2e-reports
           path: |
             frontend/playwright-report
-          root-directory: frontend
 
   collect-reports:
     runs-on: ubuntu-latest
