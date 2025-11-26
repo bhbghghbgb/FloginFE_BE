@@ -15,7 +15,11 @@
     "test:mock": "vitest --testPathPattern=mock",
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
-    "test:e2e:report": "playwright show-report"
+    "test:e2e:report": "playwright show-report",
+    "perf:login": "k6 run performance/login-test.ts",
+    "perf:product": "k6 run performance/product-test.ts",
+    "perf:breaking": "k6 run performance/breaking-point-test.ts",
+    "perf:all": "yarn perf:login && yarn perf:product && yarn perf:breaking"
   },
   "dependencies": {
     "axios": "^1.13.2",
