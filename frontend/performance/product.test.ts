@@ -217,5 +217,5 @@ export default function () {
 
 // Reporter hook
 export function handleSummary(data: any) {
-  return defaultHandleSummaryHook("k6-report/product.html", data);
+  return defaultHandleSummaryHook("product", data);
 }

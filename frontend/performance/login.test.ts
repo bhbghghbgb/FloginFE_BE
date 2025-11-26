@@ -57,5 +57,5 @@ export function teardown(data: any) {
 
 // Reporter hook
 export function handleSummary(data: any) {
-  return defaultHandleSummaryHook("k6-report/login.html", data);
+  return defaultHandleSummaryHook("login", data);
 }

@@ -13,9 +13,9 @@ import { htmlReport } from "https://raw.githubusercontent.com/benc-uk/k6-reporte
 // @ts-expect-error
 import { textSummary } from "https://jslib.k6.io/k6-summary/0.1.0/index.js";
 
-export function defaultHandleSummaryHook(path: string, data: any) {
+export function defaultHandleSummaryHook(file: string, data: any) {
   return {
-    "k6-report/breaking-point.html": htmlReport(data),
+    [`k6-report/${file}.html`]: htmlReport(data),
     stdout: textSummary(data, { indent: " ", enableColors: true }),
   };
 }

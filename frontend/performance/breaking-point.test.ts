@@ -32,5 +32,5 @@ export default function () {
 
 // Reporter hook
 export function handleSummary(data: any) {
-  return defaultHandleSummaryHook("k6-report/breaking-point.html", data);
+  return defaultHandleSummaryHook("breaking-point", data);
 }
