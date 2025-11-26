@@ -26,12 +26,6 @@ jobs:
           cache: "yarn"
           cache-dependency-path: frontend/yarn.lock
 
-      - name: Cache Playwright Browsers
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-browsers-${{ runner.os }}-${{ hashFiles('frontend/yarn.lock') }}
-
       # --- Install frontend deps + browsers ---
       - name: Install frontend dependencies
         uses: borales/actions-yarn@v5
@@ -115,6 +109,12 @@ jobs:
           node-version: 20
           cache: "yarn"
           cache-dependency-path: frontend/yarn.lock
+
+      - name: Cache Playwright Browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-browsers-${{ runner.os }}-${{ hashFiles('frontend/yarn.lock') }}
 
       # --- Setup Java / Maven ---
       - uses: actions/setup-java@v5

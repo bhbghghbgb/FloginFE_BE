@@ -38,8 +38,14 @@ public class SecurityConfig {
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)) // Returns 401 for
                                                                                                      // unauthenticated
-                ).addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-
+                ).addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .headers(headers -> headers
+                    .contentSecurityPolicy(csp -> csp.policyDirectives("default-src 'self'"))
+                    .frameOptions(frame -> frame.deny())
+                    .xssProtection(xss -> xss.block(true))
+                    .contentTypeOptions(contentType -> {})
+                );
+    
         return http.build();
     }
 
@@ -47,16 +53,24 @@ public class SecurityConfig {
      * Cấu hình CORS
      */
     @Bean
-    public UrlBasedCorsConfigurationSource corsConfigurationSource() {
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOriginPatterns(Arrays.asList(
+            "http://localhost:3000",
+            "http://localhost:4173",
+            "http://localhost:8080"
+        ));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With"));
+        configuration.setExposedHeaders(Arrays.asList("Authorization"));
+        configuration.setAllowCredentials(true); // Important for cookies/auth
+        configuration.setMaxAge(3600L);
+        
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        CorsConfiguration config = new CorsConfiguration();
-        // config.setAllowCredentials(true);
-        config.addAllowedOrigin("*"); // Cho phép mọi nguồn (Cần thay đổi trong môi trường Production)
-        config.addAllowedHeader("*"); // Cho phép mọi header
-        config.addAllowedMethod("*"); // Cho phép mọi phương thức (GET, POST, PUT, DELETE)
-        source.registerCorsConfiguration("/**", config); // Áp dụng cho mọi đường dẫn
+        source.registerCorsConfiguration("/**", configuration);
         return source;
     }
+
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
