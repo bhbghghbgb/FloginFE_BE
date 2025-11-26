@@ -1,4 +1,4 @@
-import { Locator, Page } from '@playwright/test';
+import { Locator, Page } from "@playwright/test";
 
 export class ProductPage {
   readonly page: Page;
@@ -16,17 +16,17 @@ export class ProductPage {
 
   constructor(page: Page) {
     this.page = page;
-    this.createProductButton = page.getByTestId('create-product');
-    this.productList = page.getByTestId('product-list');
-    this.productNameInput = page.getByTestId('product-name-input');
-    this.priceInput = page.getByTestId('product-price-input');
-    this.quantityInput = page.getByTestId('product-quantity-input');
-    this.categoryInput = page.getByTestId('product-category-input');
-    this.descriptionInput = page.getByTestId('product-description-input');
-    this.saveButton = page.getByTestId('submit-product');
+    this.createProductButton = page.getByTestId("create-product");
+    this.productList = page.getByTestId("product-list");
+    this.productNameInput = page.getByTestId("product-name-input");
+    this.priceInput = page.getByTestId("product-price-input");
+    this.quantityInput = page.getByTestId("product-quantity-input");
+    this.categoryInput = page.getByTestId("product-category-input");
+    this.descriptionInput = page.getByTestId("product-description-input");
+    this.saveButton = page.getByTestId("submit-product");
     this.successMessage = page.locator('[data-testid="success-message"]');
-    this.searchInput = page.getByTestId('search-input');
-    this.categoryFilter = page.getByTestId('category-filter');
+    this.searchInput = page.getByTestId("search-input");
+    this.categoryFilter = page.getByTestId("category-filter");
   }
 
   async clickCreateProduct() {
@@ -66,7 +66,7 @@ export class ProductPage {
   }
 
   async confirmDelete() {
-    await this.page.getByTestId('confirm-delete').click();
+    await this.page.getByTestId("confirm-delete").click();
   }
 
   async searchProducts(query: string) {

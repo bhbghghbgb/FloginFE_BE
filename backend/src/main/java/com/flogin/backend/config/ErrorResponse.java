@@ -15,11 +15,11 @@ public class ErrorResponse {
     private Boolean success;
     private String message;
     private LocalDateTime timestamp;
-    
+
     // Add an optional field for HTTP Status code if you want to include it in the body
-    private int status; 
-    
+    private int status;
+
     // You might also want a field for the error type/path
-    private String error; 
+    private String error;
     private String path;
 }

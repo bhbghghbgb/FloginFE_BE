@@ -1,6 +1,8 @@
 package com.flogin.backend.config;
 
-import io.jsonwebtoken.*;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -25,21 +27,21 @@ public class JwtUtil {
     // Tạo token
     public String generateToken(String username) {
         return Jwts.builder()
-                .setSubject(username)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
-                .signWith(SignatureAlgorithm.HS256, jwtSecret)
-                .compact();
+            .setSubject(username)
+            .setIssuedAt(new Date())
+            .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
+            .signWith(SignatureAlgorithm.HS256, jwtSecret)
+            .compact();
     }
 
     // Lấy username từ token
     public String getUsernameFromToken(String token) {
         return Jwts.parser()
-                .setSigningKey(jwtSecret)
-                .build()
-                .parseClaimsJws(token)
-                .getBody()
-                .getSubject();
+            .setSigningKey(jwtSecret)
+            .build()
+            .parseClaimsJws(token)
+            .getBody()
+            .getSubject();
     }
 
     // Validate token

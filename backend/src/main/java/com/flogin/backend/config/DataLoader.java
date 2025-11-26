@@ -21,12 +21,12 @@ public class DataLoader {
             // Kiểm tra nếu user test chưa tồn tại
             if (userRepository.findByUsername("testuser").isEmpty()) {
                 User testUser = User.builder()
-                        .username("testuser")
-                        .password(passwordEncoder.encode("Test123"))
-                        .email("testuser@example.com")
-                        .active(true)
-                        .role(Role.ADMIN)
-                        .build();
+                    .username("testuser")
+                    .password(passwordEncoder.encode("Test123"))
+                    .email("testuser@example.com")
+                    .active(true)
+                    .role(Role.ADMIN)
+                    .build();
                 userRepository.save(testUser);
                 log.info("Test user created: testuser / Test123");
             }

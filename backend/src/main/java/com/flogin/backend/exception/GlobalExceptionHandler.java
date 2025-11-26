@@ -16,13 +16,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleEntityNotFound(EntityNotFoundException ex) {
         log.warn("Entity not found: {}", ex.getMessage());
-        
+
         ErrorResponse errorResponse = ErrorResponse.builder()
-                .success(false)
-                .message(ex.getMessage())
-                .timestamp(LocalDateTime.now())
-                .build();
-        
+            .success(false)
+            .message(ex.getMessage())
+            .timestamp(LocalDateTime.now())
+            .build();
+
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
     }
 

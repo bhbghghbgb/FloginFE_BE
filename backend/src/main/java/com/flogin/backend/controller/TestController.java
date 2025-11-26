@@ -19,9 +19,8 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class TestController {
 
-    private final JdbcTemplate jdbcTemplate;
-
     private static final String[] TABLE_NAMES = {"products",};
+    private final JdbcTemplate jdbcTemplate;
 
     public TestController(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;

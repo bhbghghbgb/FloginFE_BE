@@ -29,8 +29,8 @@ public class ProductController {
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ProductResponse> updateProduct(
-            @PathVariable Long id,
-            @Validated @RequestBody ProductRequest request
+        @PathVariable Long id,
+        @Validated @RequestBody ProductRequest request
     ) {
         ProductResponse response = productService.updateProduct(id, request);
         return ResponseEntity.ok(response);
@@ -48,10 +48,10 @@ public class ProductController {
     @GetMapping
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<Page<ProductResponse>> listProducts(
-            @RequestParam(required = false) String name,
-            @RequestParam(required = false) String category,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+        @RequestParam(required = false) String name,
+        @RequestParam(required = false) String category,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size
     ) {
         Page<ProductResponse> products = productService.getProducts(name, category, page, size);
         return ResponseEntity.ok(products);

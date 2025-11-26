@@ -9,11 +9,16 @@ import com.flogin.backend.service.product.ProductServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.*;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -33,14 +38,14 @@ class ProductServiceImplTest {
     @BeforeEach
     void setUp() {
         product = Product.builder()
-                .id(1L)
-                .name("Test Product")
-                .price(100L)
-                .quantity(10)
-                .description("Test Description")
-                .category("Test Category")
-                .active(true)
-                .build();
+            .id(1L)
+            .name("Test Product")
+            .price(100L)
+            .quantity(10)
+            .description("Test Description")
+            .category("Test Category")
+            .active(true)
+            .build();
 
         request = new ProductRequest();
         request.setName("Test Product");
@@ -100,18 +105,20 @@ class ProductServiceImplTest {
         assertEquals("Updated Product", response.getName());
         verify(productRepository, times(1)).save(any(Product.class));
     }
+
     @Test
     void testUpdateProduct_ShouldThrowException_WhenProductNotFound() {
         when(productRepository.findById(1L)).thenReturn(Optional.empty());
 
-        assertThrows(EntityNotFoundException.class, ()->productService.updateProduct(1L, request));
+        assertThrows(EntityNotFoundException.class, () -> productService.updateProduct(1L, request));
     }
+
     @Test
     void testUpdateProduct_ShouldThrowException_WhenProductNameAlreadyExists() {
         request.setName("New Name");
         when(productRepository.findById(1L)).thenReturn(Optional.of(product));
         when(productRepository.existsByName(request.getName())).thenReturn(true);
-        assertThrows(IllegalArgumentException.class, ()->productService.updateProduct(1L, request));
+        assertThrows(IllegalArgumentException.class, () -> productService.updateProduct(1L, request));
     }
 
     @Test
@@ -123,11 +130,12 @@ class ProductServiceImplTest {
         assertFalse(product.getActive());
         verify(productRepository, times(1)).save(product);
     }
+
     @Test
     void testDeleteProduct_ShouldThrowException_WhenProductNotFound() {
         when(productRepository.findById(1L)).thenReturn(Optional.empty());
 
-        assertThrows(EntityNotFoundException.class, ()->productService.deleteProduct(1L));
+        assertThrows(EntityNotFoundException.class, () -> productService.deleteProduct(1L));
     }
 
     @Test
@@ -135,7 +143,7 @@ class ProductServiceImplTest {
         List<Product> productList = Collections.singletonList(product);
         Page<Product> page = new PageImpl<>(productList);
         when(productRepository.findByNameContainingIgnoreCaseAndCategoryContainingIgnoreCaseAndActiveTrue(
-                anyString(), anyString(), any(Pageable.class)
+            anyString(), anyString(), any(Pageable.class)
         )).thenReturn(page);
 
         Page<ProductResponse> responsePage = productService.getProducts("Test", "Test Category", 0, 10);
@@ -144,12 +152,13 @@ class ProductServiceImplTest {
         assertEquals(1, responsePage.getTotalElements());
         assertEquals("Test Product", responsePage.getContent().getFirst().getName());
     }
+
     @Test
     void testGetProducts_ShouldReturnPageProductResponse_WhenNameKeyWordNull() {
         List<Product> productList = Collections.singletonList(product);
         Page<Product> page = new PageImpl<>(productList);
         when(productRepository.findByNameContainingIgnoreCaseAndCategoryContainingIgnoreCaseAndActiveTrue(
-                anyString(), anyString(), any(Pageable.class)
+            anyString(), anyString(), any(Pageable.class)
         )).thenReturn(page);
 
         Page<ProductResponse> responsePage = productService.getProducts(null, "Test Category", 0, 10);
@@ -158,12 +167,13 @@ class ProductServiceImplTest {
         assertEquals(1, responsePage.getTotalElements());
         assertEquals("Test Product", responsePage.getContent().getFirst().getName());
     }
+
     @Test
     void testGetProducts_ShouldReturnPageProductResponse_WhenCategoryKeywordNull() {
         List<Product> productList = Collections.singletonList(product);
         Page<Product> page = new PageImpl<>(productList);
         when(productRepository.findByNameContainingIgnoreCaseAndCategoryContainingIgnoreCaseAndActiveTrue(
-                anyString(), anyString(), any(Pageable.class)
+            anyString(), anyString(), any(Pageable.class)
         )).thenReturn(page);
 
         Page<ProductResponse> responsePage = productService.getProducts("Test", null, 0, 10);
@@ -172,12 +182,14 @@ class ProductServiceImplTest {
         assertEquals(1, responsePage.getTotalElements());
         assertEquals("Test Product", responsePage.getContent().getFirst().getName());
     }
+
     @Test
     void testGetProducts_ShouldThrowException_WhenSizeIsZero() {
-        assertThrows(IllegalArgumentException.class, ()->productService.getProducts("", "", 1, 0));
+        assertThrows(IllegalArgumentException.class, () -> productService.getProducts("", "", 1, 0));
     }
+
     @Test
     void testGetProducts_ShouldThrowException_WhenPageNegative() {
-        assertThrows(IllegalArgumentException.class, ()->productService.getProducts("", "", -1, 10));
+        assertThrows(IllegalArgumentException.class, () -> productService.getProducts("", "", -1, 10));
     }
 }
