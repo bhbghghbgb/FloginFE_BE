@@ -180,3 +180,4 @@ test-results/
 playwright-report/
 html/
 performance/k6-report/
+zap-reports/

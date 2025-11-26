@@ -1,114 +1,86 @@
-# ------------------
-# 1. Environment Setup
-# ------------------
 env:
-  # The base URL of your running application
-  target: "http://localhost:8080"
+  contexts:
+    - name: AuthContext
+      urls:
+        - "http://localhost:8080"
+      authentication:
+        method: json
+        parameters:
+          loginRequestUrl: "http://localhost:8080/api/auth/login"
+          loginRequestBody: '{"username":"${TEST_USERNAME}","password":"${TEST_PASSWORD}"}'
+          loginRequestHeaders: "Content-Type: application/json"
+        verification:
+          method: response
+          loggedInRegex: '"token":".*"'
+      sessionManagement:
+        method: headers
+        parameters:
+          Authorization: "Bearer {%json:token%}"
+      users:
+        - name: testUser
+          credentials:
+            username: "${TEST_USERNAME}"
+            password: "${TEST_PASSWORD}"
+  vars:
+    target_base: "http://localhost:8080"
+    api_spec_url: "${target_base}/v3/api-docs"
+  parameters:
+    failOnError: true
+    progressToStdout: true
 
-  # API Docs URL - typically /v3/api-docs for SpringDoc/OpenAPI 3
-  api_spec_url: "http://localhost:8080/v3/api-docs"
-
-  # Timeout for the full scan
-  max_scan_duration: 30 # minutes
-
-# ------------------
-# 2. Global Context: Authentication Setup
-# ------------------
-contexts:
-  - name: AuthContext
-    urls:
-      # Scope the scan to everything under the base URL
-      - ${env.target}
-
-    # Define the authentication method
-    authentication:
-      method: "json"
-      parameters:
-        # The login URL for Bearer token acquisition
-        loginUrl: "http://localhost:8080/api/auth/login"
-        # The POST data payload (using environment variables from your GitHub workflow)
-        loginRequestBody: '{"username":"${TEST_USERNAME}","password":"${TEST_PASSWORD}"}'
-        loginRequestHeaders: "Content-Type: application/json"
-
-      # Define how to check if the user is authenticated (e.g., check HTTP response code)
-      loggedinindicator: "HTTP 200"
-
-    # Define the session management (how to maintain the session/token)
-    sessionManagement:
-      method: "bearer"
-      parameters:
-        # Key in the login JSON response containing the JWT token (e.g., 'token', 'access_token')
-        tokenExtractionKey: "token"
-
-# ------------------
-# 3. ZAP Jobs Definition
-# ------------------
 jobs:
-  # Job 1: Load the OpenAPI Specification
-  - name: openapi-import
+  - name: import-openapi
     type: openapi
     parameters:
-      # Import the specification using the URL defined in the environment
-      url: ${env.api_spec_url}
-      # The target URL that the imported URLs map to
-      target: ${env.target}
+      context: AuthContext
+      user: testUser
+      apiUrl: "${api_spec_url}"
+      targetUrl: "${target_base}"
 
-    # Use the context defined above for authentication
-    context: AuthContext
-
-  # Job 2: Run Passive Scan (Fast, no risk)
-  - name: passiveScan
-    type: passiveScan
+  - name: passiveScanWait
+    type: passiveScan-wait
     parameters:
-      # Run for a maximum of 5 minutes (or until all history is processed)
       maxDuration: 5
 
-  # Job 3: Run Active Scan (Slower, higher risk, performs attacks)
   - name: activeScan
     type: activeScan
     parameters:
-      # Set the maximum time for the active scan
-      maxDuration: ${env.max_scan_duration}
-      # Set the scanning policy (e.g., default, minimal, etc.)
-      policy: "Default"
-      # Maximum number of requests per second (to avoid overloading the application)
-      maxAps: 5
+      context: AuthContext
+      user: testUser
+      policy: "Default Policy"
+      maxScanDurationInMins: 10
 
-    # Apply the authenticated context for the active scan
-    context: AuthContext
-
-  # Job 4: Generate Reports (verbose templates)
   - name: report-high-level
     type: report
     parameters:
       template: high-level-report
       reportDir: zap-reports
-      reportFileName: zap-report-high-level.html
+      reportFile: zap-report-high-level.html
 
   - name: report-modern
     type: report
     parameters:
       template: modern
       reportDir: zap-reports
-      reportFileName: zap-report-modern.html
+      reportFile: zap-report-modern.html
 
   - name: report-risk-confidence
     type: report
     parameters:
       template: risk-confidence-html
       reportDir: zap-reports
-      reportFileName: zap-report-risk-confidence.html
+      reportFile: zap-report-risk-confidence.html
 
   - name: report-traditional
     type: report
     parameters:
       template: traditional-html
       reportDir: zap-reports
-      reportFileName: zap-report-traditional.html
+      reportFile: zap-report-traditional.html
 
   - name: report-traditional-plus
     type: report
     parameters:
       template: traditional-html-plus
       reportDir: zap-reports
-      reportFileName: zap-report-traditional-plus.html
+      reportFile: zap-report-traditional-plus.html

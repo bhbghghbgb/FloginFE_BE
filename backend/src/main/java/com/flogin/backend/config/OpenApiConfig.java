@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Configuration;
 public class OpenApiConfig {
 
     // Tên schema bảo mật (sẽ hiển thị trên nút Authorize)
-    private static final String SCHEME_NAME = "Bearer Authentication";
+    private static final String SCHEME_NAME = "BearerAuth";
     private static final String SCHEME = "bearer";
 
 

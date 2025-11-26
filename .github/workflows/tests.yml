@@ -129,6 +129,8 @@ jobs:
         with:
           distribution: "oracle"
           java-version: "21"
+          cache: "maven"
+          cache-dependency-path: "backend/pom.xml"
 
       - name: Set up Maven
         uses: stCarolas/setup-maven@v5
@@ -210,6 +212,8 @@ jobs:
         with:
           distribution: "oracle"
           java-version: "21"
+          cache: "maven"
+          cache-dependency-path: "backend/pom.xml"
 
       - name: Set up Maven
         uses: stCarolas/setup-maven@v5
@@ -306,6 +310,8 @@ jobs:
         with:
           distribution: "oracle"
           java-version: "21"
+          cache: "maven"
+          cache-dependency-path: "backend/pom.xml"
 
       - name: Set up Maven
         uses: stCarolas/setup-maven@v5
@@ -354,12 +360,14 @@ jobs:
         run: |
           docker run --rm \
             --network host \
-            -v $(pwd)/zap-reports:/zap/wrk/:rw \
-            -v $(pwd)/zap-config.yml:/home/zap/zap-config.yml \
+            -v $(pwd)/zap-reports:/home/zap/zap-reports/:rw \
+            -v $(pwd)/security/zap-config.yml:/home/zap/zap-config.yml \
             -e TEST_USERNAME=${{ env.TEST_USERNAME }} \
             -e TEST_PASSWORD=${{ env.TEST_PASSWORD }} \
-            -t zaproxy/zap-bare zap.sh \
-            -cmd -autorun /home/zap/zap-config.yml
+            -t zaproxy/zap-stable zap.sh \
+            -cmd -autorun /home/zap/zap-config.yml \
+            -config proxy.port=8090 \
+            -loglevel debug
         env:
           TEST_USERNAME: "testuser"
           TEST_PASSWORD: "Test123"
