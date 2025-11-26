@@ -28,13 +28,10 @@ export class SecurityTestClient {
 
   async login(username: string, password: string): Promise<string> {
     try {
-      const response: AxiosResponse = await this.client.post(
-        "/api/auth/login",
-        {
-          username,
-          password,
-        }
-      );
+      const response: AxiosResponse = await this.client.post("/auth/login", {
+        username,
+        password,
+      });
 
       if (response.data.token) {
         this.authToken = response.data.token;
