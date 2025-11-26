@@ -38,7 +38,6 @@ contexts:
       method: "bearer"
       parameters:
         # Key in the login JSON response containing the JWT token (e.g., 'token', 'access_token')
-        # YOU MUST ADJUST THIS KEY based on your backend's JSON response!
         tokenExtractionKey: "token"
 
 # ------------------
@@ -73,36 +72,43 @@ jobs:
       # Set the scanning policy (e.g., default, minimal, etc.)
       policy: "Default"
       # Maximum number of requests per second (to avoid overloading the application)
-      maxAps: 10
+      maxAps: 5
 
     # Apply the authenticated context for the active scan
     context: AuthContext
 
   # Job 4: Generate Reports (verbose templates)
-  - name: report-html
+  - name: report-high-level
+    type: report
+    parameters:
+      template: high-level-report
+      reportDir: zap-reports
+      reportFileName: zap-report-high-level.html
+
+  - name: report-modern
+    type: report
+    parameters:
+      template: modern
+      reportDir: zap-reports
+      reportFileName: zap-report-modern.html
+
+  - name: report-risk-confidence
+    type: report
+    parameters:
+      template: risk-confidence-html
+      reportDir: zap-reports
+      reportFileName: zap-report-risk-confidence.html
+
+  - name: report-traditional
+    type: report
+    parameters:
+      template: traditional-html
+      reportDir: zap-reports
+      reportFileName: zap-report-traditional.html
+
+  - name: report-traditional-plus
     type: report
     parameters:
       template: traditional-html-plus
       reportDir: zap-reports
-      reportFileName: zap-report-full.html
-
-  - name: report-json
-    type: report
-    parameters:
-      template: traditional-json-plus
-      reportDir: zap-reports
-      reportFileName: zap-report.json
-
-  - name: report-xml
-    type: report
-    parameters:
-      template: traditional-xml-plus
-      reportDir: zap-reports
-      reportFileName: zap-report.xml
-
-  - name: report-md
-    type: report
-    parameters:
-      template: traditional-md
-      reportDir: zap-reports
-      reportFileName: zap-report.md
+      reportFileName: zap-report-traditional-plus.html
