@@ -226,9 +226,12 @@ jobs:
 
       # --- Run all k6 tests with wildcard ---
       - name: Run k6 Performance Tests
-        uses: grafana/run-k6-action@v1
-        with:
-          path: "frontend/performance/*.test.ts"
+        run: |
+          for f in *.test.ts; do
+            echo "Running $f"
+            k6 run "$f"
+          done
+        working-directory: frontend/performance
         env:
           BASE_URL: http://localhost:8080/api
           USERNAME: testuser
@@ -239,13 +242,14 @@ jobs:
         run: kill ${{ env.BACKEND_PID }}
 
       # --- Upload performance reports ---
-      - run: mkdir frontend/k6-report && mv k6-report frontend/k6-report/
+      - run: mkdir tmp-dir && mv k6-report tmp-dir/ && mv tmp-dir k6-report
+        working-directory: frontend/performance
       - name: Upload Performance Reports
         uses: actions/upload-artifact@v4
         with:
           name: performance-reports
           path: |
-            frontend/k6-report
+            frontend/performance/k6-report
 
   # -------------------------
   # COLLECT REPORTS JOB
