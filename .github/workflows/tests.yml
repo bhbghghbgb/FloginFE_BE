@@ -359,7 +359,7 @@ jobs:
             -e TEST_USERNAME=${{ env.TEST_USERNAME }} \
             -e TEST_PASSWORD=${{ env.TEST_PASSWORD }} \
             -t zaproxy/zap-bare zap.sh \
-            -autorun /home/zap/zap-config.yml
+            -cmd -autorun /home/zap/zap-config.yml
         env:
           TEST_USERNAME: "testuser"
           TEST_PASSWORD: "Test123"
