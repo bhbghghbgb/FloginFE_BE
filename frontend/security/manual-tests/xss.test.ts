@@ -26,7 +26,7 @@ describe("XSS Tests", () => {
           description: payload,
         };
 
-        const response = await client.post("/api/products", productData);
+        const response = await client.post("/products", productData);
 
         const result = createTestResult(
           `XSS - Product creation with ${payload.substring(0, 20)}...`,

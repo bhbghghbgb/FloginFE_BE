@@ -358,7 +358,7 @@ jobs:
             -v $(pwd)/zap-config.yml:/home/zap/zap-config.yml \
             -e TEST_USERNAME=${{ env.TEST_USERNAME }} \
             -e TEST_PASSWORD=${{ env.TEST_PASSWORD }} \
-            -t owasp/zap2docker-stable zap.sh \
+            -t zaproxy/zap-bare zap.sh \
             -autorun /home/zap/zap-config.yml
         env:
           TEST_USERNAME: "testuser"
