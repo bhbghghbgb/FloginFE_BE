@@ -247,7 +247,11 @@ jobs:
       - name: Run k6 Performance Tests
         run: |
           for f in *.test.ts; do
+            base=$(basename "$f" .test.ts)
             echo "Running $f"
+            K6_WEB_DASHBOARD=true \
+            K6_WEB_DASHBOARD_PORT=-1 \
+            K6_WEB_DASHBOARD_EXPORT="./k6-report/${base}.html" \
             k6 run "$f" || echo "Test $f failed but continuing..."
           done
         working-directory: frontend/performance

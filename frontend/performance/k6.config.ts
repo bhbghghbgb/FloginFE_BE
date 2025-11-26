@@ -15,7 +15,8 @@ import { textSummary } from "https://jslib.k6.io/k6-summary/0.1.0/index.js";
 
 export function defaultHandleSummaryHook(file: string, data: any) {
   return {
-    [`k6-report/${file}.html`]: htmlReport(data),
+    [`k6-report/${file}-reporter.html`]: htmlReport(data),
+    [`k6-report/${file}.json`]: JSON.stringify(data),
     stdout: textSummary(data, { indent: " ", enableColors: true }),
   };
 }

@@ -1,6 +1,6 @@
 # Flogin - Full Stack Authentication & Product Management System
 
-A full-stack web application demonstrating modern software testing practices with React frontend and Spring Boot backend, featuring authentication and product management capabilities.
+A full-stack web application demonstrating modern software testing practices with React frontend and Spring Boot backend, featuring authentication, product management, and comprehensive testing including performance testing with k6.
 
 ## 📋 Project Overview
 
@@ -10,6 +10,7 @@ Flogin is a comprehensive full-stack application built for educational purposes 
 - Integration Testing
 - Mock Testing
 - End-to-End (E2E) Testing
+- Performance Testing
 - CI/CD Pipeline Implementation
 
 The application provides user authentication with JWT tokens and CRUD operations for product management.
@@ -42,8 +43,9 @@ The application provides user authentication with JWT tokens and CRUD operations
 - **H2** - Test database
 - **Spring Data JPA** - Data persistence
 
-### DevOps & Testing
+### Testing & Performance
 
+- **k6** - Performance and load testing
 - **GitHub Actions** - CI/CD pipelines
 - **Docker & Docker Compose** - Containerization
 - **Nginx** - Reverse proxy
@@ -74,6 +76,11 @@ FloginFE_BE/
 │   │   ├── utils/          # Utilities and validation
 │   │   └── mocks/          # MSW mock handlers
 │   ├── e2e/               # Playwright E2E tests
+│   ├── performance/       # k6 performance tests
+│   │   ├── login.test.ts
+│   │   ├── product.test.ts
+│   │   ├── breaking-point.test.ts
+│   │   └── k6.config.ts
 │   └── package.json       # Frontend dependencies
 ├── docker-compose.yml     # Multi-container setup
 ├── nginx.conf            # Nginx configuration
@@ -90,6 +97,7 @@ FloginFE_BE/
 - **Java 21** or higher
 - **Maven 3.9+**
 - **Yarn 4.11.0** (enabled via corepack)
+- **k6** (for performance testing)
 
 ### Local Development
 
@@ -166,6 +174,27 @@ yarn test:e2e
 yarn test:e2e:headed
 ```
 
+#### Performance Testing with k6
+
+```bash
+cd frontend
+
+# Install k6 (if not already installed)
+# See installation instructions in performance testing section
+
+# Run login performance tests
+yarn perf:login
+
+# Run product API performance tests
+yarn perf:product
+
+# Run breaking point tests (load capacity)
+yarn perf:breaking
+
+# Run all performance tests and generate reports
+yarn perf:all
+```
+
 #### View Test Reports
 
 After running tests, you can view various reports:
@@ -175,6 +204,7 @@ After running tests, you can view various reports:
 - **Frontend Coverage**: `frontend/coverage/index.html`
 - **Frontend HTML Reports**: `frontend/html/`
 - **E2E Reports**: `frontend/playwright-report/`
+- **Performance Reports**: `frontend/performance/k6-report/`
 
 ## 🐳 Docker Deployment
 
@@ -205,6 +235,70 @@ The Docker setup uses:
 - **Backend Container**: Spring Boot application
 - **Nginx**: Reverse proxy handling API routing (/api → backend)
 
+## 📊 Performance Testing
+
+The project includes comprehensive performance testing using k6 to measure application performance under various load conditions.
+
+### Installation
+
+**macOS:**
+
+```bash
+brew install k6
+```
+
+**Windows:**
+
+```bash
+choco install k6
+```
+
+**Linux:**
+
+```bash
+sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+echo "deb https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+sudo apt-get update
+sudo apt-get install k6
+```
+
+### Test Scenarios
+
+#### Login Performance Tests
+
+- Smoke tests (1 user) to verify functionality
+- Load tests (10-50 concurrent users) for normal load
+- Stress tests (100+ users) to identify bottlenecks
+- Measures authentication response times and token generation performance
+
+#### Product API Performance Tests
+
+- Product listing under concurrent load
+- CRUD operations performance
+- Search and filter functionality under stress
+- Database query performance metrics
+
+#### Breaking Point Tests
+
+- Gradual load increase to find system limits
+- Spike testing for sudden traffic bursts
+- Endurance testing for sustained loads
+- Identifies maximum concurrent user capacity
+
+### Customization
+
+Use environment variables to customize tests:
+
+```bash
+export BASE_URL=http://localhost:8080/api
+export USERNAME=testuser
+export PASSWORD=Test123
+export VUS=10
+export DURATION=30s
+
+yarn perf:login
+```
+
 ## 🔧 Configuration
 
 ### Backend Configuration
@@ -233,7 +327,7 @@ spring.jpa.hibernate.ddl-auto=create-drop
 VITE_API_BASE_URL=http://localhost:8080/api
 ```
 
-## 📊 Testing Strategy
+## 📈 Testing Strategy
 
 ### 1. Unit Testing
 
@@ -254,7 +348,12 @@ VITE_API_BASE_URL=http://localhost:8080/api
 
 - **Playwright**: Cross-browser E2E tests with Page Object Model
 
-### 5. CI/CD Pipeline
+### 5. Performance Testing
+
+- **k6**: Load testing, stress testing, and capacity planning
+- **Multiple Scenarios**: Smoke, load, stress, and breaking point tests
+
+### 6. CI/CD Pipeline
 
 - **GitHub Actions**: Automated testing on push/PR
 - **Test Reports**: Automated report generation and deployment to GitHub Pages
@@ -266,14 +365,15 @@ The project includes two GitHub Actions workflows:
 ### 1. CI - Build and Test (`ci.yml`)
 
 - Runs on push and pull requests to main branch
-- Executes frontend, backend, and E2E tests in parallel
+- Executes frontend, backend, E2E, and performance tests
 - Generates and uploads test reports as artifacts
+- Performance tests run against live backend instance
 
 ### 2. Deploy GitHub Pages (`pages.yml`)
 
 - Triggers after CI workflow completes
 - Deploys test reports to GitHub Pages
-- Provides accessible test results dashboard
+- Provides accessible test results dashboard including performance metrics
 
 ## 🎯 Key Features
 
@@ -294,6 +394,7 @@ The project includes two GitHub Actions workflows:
 ### Testing Coverage
 
 - Comprehensive test suites at all levels
+- Performance and load testing
 - Code coverage reporting
 - Automated test execution
 - Visual test reports
@@ -303,6 +404,9 @@ The project includes two GitHub Actions workflows:
 ### Authentication
 
 - `POST /api/auth/login` - User login
+- `GET /api/test/public` - Public endpoint
+- `GET /api/test/user` - User role required
+- `GET /api/test/admin` - Admin role required
 
 ### Products
 
@@ -337,7 +441,12 @@ The project includes two GitHub Actions workflows:
    corepack enable
    ```
 
-4. **Port conflicts**
+4. **k6 installation**
+
+   - Follow platform-specific installation instructions above
+   - Verify with `k6 version`
+
+5. **Port conflicts**
    - Backend: Change `server.port` in `application.properties`
    - Frontend: Use `yarn dev --port 3000`
 
@@ -347,11 +456,12 @@ The project includes two GitHub Actions workflows:
 - [React Documentation](https://reactjs.org/docs)
 - [Vitest Documentation](https://vitest.dev)
 - [Playwright Documentation](https://playwright.dev)
+- [k6 Documentation](https://k6.io/docs)
 
 ## 👥 Development
 
-This project was developed as part of a University Software Testing course to demonstrate comprehensive testing methodologies in a full-stack application environment.
+This project was developed as part of a University Software Testing course to demonstrate comprehensive testing methodologies in a full-stack application environment, including performance testing and CI/CD integration.
 
 ---
 
-_For detailed test reports and coverage analysis, check the GitHub Pages deployment after running the CI/CD pipeline._
+_For detailed test reports, coverage analysis, and performance metrics, check the GitHub Pages deployment after running the CI/CD pipeline._
