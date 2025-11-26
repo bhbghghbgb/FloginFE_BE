@@ -59,7 +59,7 @@ export default function () {
   const productPayload = JSON.stringify({
     name: `Performance Test Product ${vuId}`,
     description: "Performance testing product",
-    price: 99.99,
+    price: 9999,
     quantity: 100,
     category: "Electronics",
   });
@@ -87,7 +87,7 @@ export default function () {
           productId !== undefined && productId > 0,
         "created product has name": () =>
           responseBody.name === `Performance Test Product ${vuId}`,
-        "created product has correct price": () => responseBody.price === 99.99,
+        "created product has correct price": () => responseBody.price === 9999,
         "created product has correct quantity": () =>
           responseBody.quantity === 100,
       });
@@ -117,7 +117,7 @@ export default function () {
           "retrieved product has correct id": () => getBody.id === productId,
           "retrieved product has correct name": () =>
             getBody.name === `Performance Test Product ${vuId}`,
-          "retrieved product has correct price": () => getBody.price === 99.99,
+          "retrieved product has correct price": () => getBody.price === 9999,
           "retrieved product has correct quantity": () =>
             getBody.quantity === 100,
           "retrieved product has correct category": () =>
@@ -136,7 +136,7 @@ export default function () {
     const updatePayload = JSON.stringify({
       name: `Updated Performance Product ${vuId}`,
       description: "Updated performance testing product",
-      price: 149.99,
+      price: 14999,
       quantity: 50,
       category: "Electronics",
     });
@@ -159,7 +159,7 @@ export default function () {
           "updated product has correct name": () =>
             updateBody.name === `Updated Performance Product ${vuId}`,
           "updated product has correct price": () =>
-            updateBody.price === 149.99,
+            updateBody.price === 14999,
           "updated product has correct quantity": () =>
             updateBody.quantity === 50,
         });
