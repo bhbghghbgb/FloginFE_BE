@@ -1,6 +1,6 @@
 import { check, sleep } from "k6";
 import http from "k6/http";
-import { TestEnvConfig, defaultHandleSummaryHook } from "./k6.config";
+import { TestEnvConfig, defaultHandleSummaryHook } from "./k6.config.ts";
 
 export const options = {
   stages: [

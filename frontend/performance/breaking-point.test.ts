@@ -1,6 +1,6 @@
 import { check } from "k6";
 import http from "k6/http";
-import { defaultHandleSummaryHook, TestEnvConfig } from "./k6.config";
+import { defaultHandleSummaryHook, TestEnvConfig } from "./k6.config.ts";
 
 // Stress test to find breaking point
 export const options = {
