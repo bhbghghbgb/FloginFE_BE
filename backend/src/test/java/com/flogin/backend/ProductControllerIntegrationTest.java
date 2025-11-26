@@ -55,7 +55,6 @@ class ProductControllerIntegrationTest {
             .quantity(100)
             .description("Test Description")
             .category("Electronics")
-            .active(true)
             .build();
 
         testProduct = productRepository.save(testProduct);
@@ -67,19 +66,8 @@ class ProductControllerIntegrationTest {
             .quantity(50)
             .description("Another Description")
             .category("Books")
-            .active(true)
             .build();
-
-        Product inactiveProduct = Product.builder()
-            .name("Inactive Product")
-            .price(2999L)
-            .quantity(0)
-            .description("Inactive Description")
-            .category("Electronics")
-            .active(false)
-            .build();
-
-        productRepository.saveAll(List.of(product2, inactiveProduct));
+        productRepository.saveAll(List.of(product2));
     }
 
     @Test
@@ -105,8 +93,7 @@ class ProductControllerIntegrationTest {
             .andExpect(jsonPath("$.price").value(14999L))
             .andExpect(jsonPath("$.quantity").value(25))
             .andExpect(jsonPath("$.description").value("New Product Description"))
-            .andExpect(jsonPath("$.category").value("Home Appliances"))
-            .andExpect(jsonPath("$.active").value(true));
+            .andExpect(jsonPath("$.category").value("Home Appliances"));
 
         // Verify product was saved in database
         String responseContent = result.andReturn().getResponse().getContentAsString();
@@ -250,8 +237,7 @@ class ProductControllerIntegrationTest {
             .andExpect(jsonPath("$.price").value(9999L))
             .andExpect(jsonPath("$.quantity").value(100))
             .andExpect(jsonPath("$.description").value("Test Description"))
-            .andExpect(jsonPath("$.category").value("Electronics"))
-            .andExpect(jsonPath("$.active").value(true));
+            .andExpect(jsonPath("$.category").value("Electronics"));
     }
 
     @Test
@@ -264,26 +250,12 @@ class ProductControllerIntegrationTest {
 
     @Test
     @WithMockUser
-    void getProductById_InactiveProduct() throws Exception {
-        // Given - Find inactive product
-        Product inactiveProduct = productRepository.findAll().stream()
-            .filter(p -> !p.getActive())
-            .findFirst()
-            .orElseThrow();
-
-        // When & Then - This depends on your business logic
-        mockMvc.perform(get("/api/products/{id}", inactiveProduct.getId()))
-            .andExpect(status().isOk()); // or .isNotFound() depending on your logic
-    }
-
-    @Test
-    @WithMockUser
     void listProducts_AllProducts() throws Exception {
         // When & Then
         mockMvc.perform(get("/api/products"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.content").isArray())
-            .andExpect(jsonPath("$.content.length()").value(2)) // Only active products
+            .andExpect(jsonPath("$.content.length()").value(2))
             .andExpect(jsonPath("$.totalElements").value(2));
     }
 
@@ -330,10 +302,9 @@ class ProductControllerIntegrationTest {
                 .with(csrf()))
             .andExpect(status().isNoContent());
 
-        // Verify product is inactive or deleted
+        // Verify product is deleted
         Product deletedProduct = productRepository.findById(testProduct.getId()).orElse(null);
-        assertNotNull(deletedProduct);
-        assertFalse(deletedProduct.getActive()); // Assuming soft delete
+        assertNull(deletedProduct);
     }
 
     @Test

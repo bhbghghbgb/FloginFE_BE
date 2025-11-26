@@ -87,12 +87,6 @@ export const ProductDetail: React.FC = () => {
             {product.description || "No description"}
           </span>
         </div>
-        <div className="detail-row">
-          <strong>Status:</strong>
-          <span data-testid="product-status">
-            {product.active ? "Active" : "Inactive"}
-          </span>
-        </div>
       </div>
     </div>
   );

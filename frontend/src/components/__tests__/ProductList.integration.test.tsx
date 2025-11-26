@@ -27,7 +27,6 @@ describe("ProductList Integration", () => {
         quantity: 10,
         description: "Test Description",
         category: "Electronics",
-        active: true,
       },
     ];
 

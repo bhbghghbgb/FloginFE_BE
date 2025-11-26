@@ -32,7 +32,6 @@ public class ProductServiceImpl implements IProductService {
             .quantity(request.getQuantity())
             .description(request.getDescription())
             .category(request.getCategory())
-            .active(true)
             .build();
 
         productRepository.save(product);
@@ -75,7 +74,7 @@ public class ProductServiceImpl implements IProductService {
         Pageable pageable = PageRequest.of(page, size, Sort.by("name").ascending());
 
         Page<Product> products = productRepository
-            .findByNameContainingIgnoreCaseAndCategoryContainingIgnoreCaseAndActiveTrue(
+            .findByNameContainingIgnoreCaseAndCategoryContainingIgnoreCase(
                 nameKeyword == null ? "" : nameKeyword,
                 categoryKeyword == null ? "" : categoryKeyword,
                 pageable);
@@ -83,14 +82,13 @@ public class ProductServiceImpl implements IProductService {
         return products.map(this::mapToResponse);
     }
 
-    // --- Soft delete product ---
+    // --- Delete product ---
     @Transactional
     public void deleteProduct(Long id) {
         Product product = productRepository.findById(id)
             .orElseThrow(() -> EntityNotFoundException.forId(Product.class, id));
 
-        product.setActive(false);
-        productRepository.save(product);
+        productRepository.delete(product);
     }
 
     private ProductResponse mapToResponse(Product product) {
@@ -101,7 +99,6 @@ public class ProductServiceImpl implements IProductService {
             .quantity(product.getQuantity())
             .description(product.getDescription())
             .category(product.getCategory())
-            .active(product.getActive())
             .build();
     }
 }

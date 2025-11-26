@@ -22,7 +22,6 @@ describe("ProductList Mock Testing", () => {
         quantity: 10,
         description: "Mock Description",
         category: "Electronics",
-        active: true,
       },
     ];
 

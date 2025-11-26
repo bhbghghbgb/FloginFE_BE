@@ -23,7 +23,6 @@ describe("ProductForm Mock Testing", () => {
       quantity: 10,
       description: "Test",
       category: "Electronics",
-      active: true,
     };
     const mockResponse = createMockAxiosResponse(mockProductData);
     mockApiClient.createProduct.mockResolvedValue(mockResponse);
@@ -63,7 +62,6 @@ describe("ProductForm Mock Testing", () => {
       quantity: 5,
       description: "Existing",
       category: "Books",
-      active: true,
     };
 
     const mockGetResponse = createMockAxiosResponse(mockProduct);
@@ -139,7 +137,6 @@ describe("ProductForm Mock Testing", () => {
       quantity: 20,
       description: "Test desc",
       category: "Electronics",
-      active: true,
     };
     const mockResponse = createMockAxiosResponse(mockProductData);
     mockApiClient.createProduct.mockResolvedValue(mockResponse);

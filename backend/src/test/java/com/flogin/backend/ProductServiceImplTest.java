@@ -44,7 +44,6 @@ class ProductServiceImplTest {
             .quantity(10)
             .description("Test Description")
             .category("Test Category")
-            .active(true)
             .build();
 
         request = new ProductRequest();
@@ -122,13 +121,12 @@ class ProductServiceImplTest {
     }
 
     @Test
-    void testDeleteProduct_ShouldChangeIsActiveToFalse_WhenSuccess() {
+    void testDeleteProduct_ShouldDeleteProduct_WhenSuccess() {
         when(productRepository.findById(1L)).thenReturn(Optional.of(product));
 
         productService.deleteProduct(1L);
 
-        assertFalse(product.getActive());
-        verify(productRepository, times(1)).save(product);
+        verify(productRepository, times(1)).delete(product);
     }
 
     @Test
@@ -142,7 +140,7 @@ class ProductServiceImplTest {
     void testGetProducts_ShouldReturnPageProductResponse() {
         List<Product> productList = Collections.singletonList(product);
         Page<Product> page = new PageImpl<>(productList);
-        when(productRepository.findByNameContainingIgnoreCaseAndCategoryContainingIgnoreCaseAndActiveTrue(
+        when(productRepository.findByNameContainingIgnoreCaseAndCategoryContainingIgnoreCase(
             anyString(), anyString(), any(Pageable.class)
         )).thenReturn(page);
 
@@ -157,7 +155,7 @@ class ProductServiceImplTest {
     void testGetProducts_ShouldReturnPageProductResponse_WhenNameKeyWordNull() {
         List<Product> productList = Collections.singletonList(product);
         Page<Product> page = new PageImpl<>(productList);
-        when(productRepository.findByNameContainingIgnoreCaseAndCategoryContainingIgnoreCaseAndActiveTrue(
+        when(productRepository.findByNameContainingIgnoreCaseAndCategoryContainingIgnoreCase(
             anyString(), anyString(), any(Pageable.class)
         )).thenReturn(page);
 
@@ -172,7 +170,7 @@ class ProductServiceImplTest {
     void testGetProducts_ShouldReturnPageProductResponse_WhenCategoryKeywordNull() {
         List<Product> productList = Collections.singletonList(product);
         Page<Product> page = new PageImpl<>(productList);
-        when(productRepository.findByNameContainingIgnoreCaseAndCategoryContainingIgnoreCaseAndActiveTrue(
+        when(productRepository.findByNameContainingIgnoreCaseAndCategoryContainingIgnoreCase(
             anyString(), anyString(), any(Pageable.class)
         )).thenReturn(page);
 

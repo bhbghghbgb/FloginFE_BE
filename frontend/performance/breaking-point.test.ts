@@ -5,12 +5,12 @@ import { defaultHandleSummaryHook, TestEnvConfig } from "./k6.config.ts";
 // Stress test to find breaking point
 export const options = {
   stages: [
-    { duration: "2m", target: 100 }, // Normal load
-    { duration: "2m", target: 200 }, // Medium load
-    { duration: "2m", target: 500 }, // High load
-    { duration: "2m", target: 1000 }, // Very high load
-    { duration: "2m", target: 2000 }, // Extreme load
-    { duration: "2m", target: 0 }, // Recovery
+    { duration: "15s", target: 100 }, // Normal load
+    { duration: "15s", target: 200 }, // Medium load
+    { duration: "15s", target: 500 }, // High load
+    { duration: "15s", target: 1000 }, // Very high load
+    { duration: "15s", target: 2000 }, // Extreme load
+    { duration: "15s", target: 0 }, // Recovery
   ],
 };
 
@@ -26,7 +26,7 @@ export default function () {
 
   check(response, {
     "login successful": (r) => r.status === 200,
-    "response time acceptable": (r) => r.timings.duration < 5000,
+    "response time acceptable": (r) => r.timings.duration < 2000,
   });
 }
 

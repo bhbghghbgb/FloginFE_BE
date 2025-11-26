@@ -37,7 +37,6 @@ export const handlers = [
           quantity: 10,
           description: "Test Description",
           category: "Electronics",
-          active: true,
         },
       ],
     });
@@ -54,7 +53,6 @@ export const handlers = [
       quantity: 10,
       description: "Test Description",
       category: "Electronics",
-      active: true,
     });
   }),
 

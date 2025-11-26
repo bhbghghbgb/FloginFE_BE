@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository;
 public interface ProductRepository extends JpaRepository<Product, Long> {
 
     // Tìm sản phẩm theo tên (có thể dùng LIKE)
-    Page<Product> findByNameContainingIgnoreCaseAndCategoryContainingIgnoreCaseAndActiveTrue(
+    Page<Product> findByNameContainingIgnoreCaseAndCategoryContainingIgnoreCase(
         String name, String category, Pageable pageable
     );
 

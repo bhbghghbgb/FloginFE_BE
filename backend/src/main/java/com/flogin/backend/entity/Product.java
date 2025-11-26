@@ -46,9 +46,6 @@ public class Product {
     @NotBlank(message = "Category must not be blank")
     private String category;
 
-    @Column(nullable = false)
-    private Boolean active = true;
-
     @Override
     public final boolean equals(Object o) {
         if (this == o) return true;

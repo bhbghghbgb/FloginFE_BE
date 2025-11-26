@@ -22,7 +22,6 @@ describe("ProductDetail Integration", () => {
       quantity: 25,
       description: "A great product",
       category: "Electronics",
-      active: true,
     };
 
     mockApiClient.getProductById.mockResolvedValue(

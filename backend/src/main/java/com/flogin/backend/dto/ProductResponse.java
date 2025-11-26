@@ -16,5 +16,4 @@ public class ProductResponse {
     private Integer quantity;
     private String description;
     private String category;
-    private Boolean active;
 }

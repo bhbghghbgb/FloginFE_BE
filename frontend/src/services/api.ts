@@ -32,7 +32,6 @@ export interface ProductResponse {
   quantity: number;
   description: string;
   category: string;
-  active: boolean;
 }
 
 class ApiClient {

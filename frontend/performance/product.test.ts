@@ -25,13 +25,13 @@ function getAuthToken(): string {
 
 export const options = {
   stages: [
+    { duration: "10s", target: 50 },
     { duration: "30s", target: 50 },
-    { duration: "1m", target: 50 },
+    { duration: "10s", target: 100 },
     { duration: "30s", target: 100 },
-    { duration: "1m", target: 100 },
+    { duration: "10s", target: 200 },
     { duration: "30s", target: 200 },
-    { duration: "2m", target: 200 },
-    { duration: "30s", target: 0 },
+    { duration: "20s", target: 0 },
   ],
   thresholds: {
     http_req_duration: ["p(95)<1000"],
@@ -51,33 +51,165 @@ export default function () {
     Authorization: `Bearer ${token}`,
   };
 
-  // Test GET products
-  const getProductsResponse = http.get(`${TestEnvConfig.BASE_URL}/products`, {
+  // VU performs complete CRUD cycle
+  const vuId = `${__VU}-${Date.now()}-${Math.random()}`;
+
+  // CREATE - Create a new product
+  const productPayload = JSON.stringify({
+    name: `Performance Test Product ${vuId}`,
+    description: "Performance testing product",
+    price: 99.99,
+    quantity: 100,
+    category: "Electronics",
+  });
+
+  const createResponse = http.post(
+    `${TestEnvConfig.BASE_URL}/products`,
+    productPayload,
+    { headers }
+  );
+
+  check(createResponse, {
+    "create product status is 200 or 201": (r) =>
+      r.status === 200 || r.status === 201,
+    "create product response time < 1s": (r) => r.timings.duration < 1000,
+  });
+
+  let productId: number | undefined;
+  if (createResponse.status === 200 || createResponse.status === 201) {
+    try {
+      const responseBody = createResponse.json() as any;
+      productId = responseBody.id;
+
+      check(createResponse, {
+        "created product has id": () =>
+          productId !== undefined && productId > 0,
+        "created product has name": () =>
+          responseBody.name === `Performance Test Product ${vuId}`,
+        "created product has correct price": () => responseBody.price === 99.99,
+        "created product has correct quantity": () =>
+          responseBody.quantity === 100,
+      });
+    } catch (e) {
+      console.error(`Failed to parse create response: ${e}`);
+    }
+  }
+
+  sleep(0.5);
+
+  // READ - Get the created product
+  if (productId) {
+    const getResponse = http.get(
+      `${TestEnvConfig.BASE_URL}/products/${productId}`,
+      { headers }
+    );
+
+    check(getResponse, {
+      "get product status is 200": (r) => r.status === 200,
+      "get product response time < 1s": (r) => r.timings.duration < 1000,
+    });
+
+    if (getResponse.status === 200) {
+      try {
+        const getBody = getResponse.json() as any;
+        check(getResponse, {
+          "retrieved product has correct id": () => getBody.id === productId,
+          "retrieved product has correct name": () =>
+            getBody.name === `Performance Test Product ${vuId}`,
+          "retrieved product has correct price": () => getBody.price === 99.99,
+          "retrieved product has correct quantity": () =>
+            getBody.quantity === 100,
+          "retrieved product has correct category": () =>
+            getBody.category === "Electronics",
+        });
+      } catch (e) {
+        console.error(`Failed to parse get response: ${e}`);
+      }
+    }
+  }
+
+  sleep(0.5);
+
+  // UPDATE - Update the product
+  if (productId) {
+    const updatePayload = JSON.stringify({
+      name: `Updated Performance Product ${vuId}`,
+      description: "Updated performance testing product",
+      price: 149.99,
+      quantity: 50,
+      category: "Electronics",
+    });
+
+    const updateResponse = http.put(
+      `${TestEnvConfig.BASE_URL}/products/${productId}`,
+      updatePayload,
+      { headers }
+    );
+
+    check(updateResponse, {
+      "update product status is 200": (r) => r.status === 200,
+      "update product response time < 1s": (r) => r.timings.duration < 1000,
+    });
+
+    if (updateResponse.status === 200) {
+      try {
+        const updateBody = updateResponse.json() as any;
+        check(updateResponse, {
+          "updated product has correct name": () =>
+            updateBody.name === `Updated Performance Product ${vuId}`,
+          "updated product has correct price": () =>
+            updateBody.price === 149.99,
+          "updated product has correct quantity": () =>
+            updateBody.quantity === 50,
+        });
+      } catch (e) {
+        console.error(`Failed to parse update response: ${e}`);
+      }
+    }
+  }
+
+  sleep(0.5);
+
+  // LIST - Get all products
+  const listResponse = http.get(`${TestEnvConfig.BASE_URL}/products`, {
     headers,
   });
 
-  check(getProductsResponse, {
-    "get products status is 200": (r) => r.status === 200,
-    "get products response time < 1s": (r) => r.timings.duration < 1000,
+  check(listResponse, {
+    "list products status is 200": (r) => r.status === 200,
+    "list products response time < 1s": (r) => r.timings.duration < 1000,
   });
 
-  // // Test POST product
-  // const productPayload = JSON.stringify({
-  //   name: `Test Product ${Math.random()}`,
-  //   description: "Performance test product",
-  //   price: 99.99,
-  // });
+  if (listResponse.status === 200) {
+    try {
+      const listBody = listResponse.json() as any;
+      check(listResponse, {
+        "list response has content array": () =>
+          Array.isArray(listBody.content),
+        "list response content is not empty": () =>
+          listBody.content && listBody.content.length > 0,
+      });
+    } catch (e) {
+      console.error(`Failed to parse list response: ${e}`);
+    }
+  }
 
-  // const createProductResponse = http.post(
-  //   `${TestEnvConfig.BASE_URL}/products`,
-  //   productPayload,
-  //   { headers }
-  // );
+  sleep(0.5);
 
-  // check(createProductResponse, {
-  //   "create product status is 200": (r) => r.status === 200,
-  //   "create product response time < 1s": (r) => r.timings.duration < 1000,
-  // });
+  // DELETE - Delete the product
+  if (productId) {
+    const deleteResponse = http.del(
+      `${TestEnvConfig.BASE_URL}/products/${productId}`,
+      undefined,
+      { headers }
+    );
+
+    check(deleteResponse, {
+      "delete product status is 200 or 204": (r) =>
+        r.status === 200 || r.status === 204,
+      "delete product response time < 1s": (r) => r.timings.duration < 1000,
+    });
+  }
 
   sleep(1);
 }
