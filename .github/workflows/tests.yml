@@ -238,6 +238,11 @@ jobs:
           timeout: 60
           interval: 1
 
+      - name: Prepare k6 Performance Tests
+        if: always()
+        run: mkdir -p k6-report
+        working-directory: frontend/performance
+
       # --- Run all k6 tests with wildcard ---
       - name: Run k6 Performance Tests
         run: |

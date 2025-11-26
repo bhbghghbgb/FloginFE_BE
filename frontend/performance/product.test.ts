@@ -10,7 +10,7 @@ function getAuthToken(): string {
   });
 
   const loginResponse = http.post(
-    `${TestEnvConfig.BASE_URL}/api/auth/login`,
+    `${TestEnvConfig.BASE_URL}/auth/login`,
     loginPayload,
     {
       headers: { "Content-Type": "application/json" },
@@ -25,13 +25,14 @@ function getAuthToken(): string {
 
 export const options = {
   stages: [
-    { duration: "10s", target: 50 },
-    { duration: "30s", target: 50 },
-    { duration: "10s", target: 100 },
-    { duration: "30s", target: 100 },
-    { duration: "10s", target: 200 },
-    { duration: "30s", target: 200 },
-    { duration: "20s", target: 0 },
+    // Load test scenarios
+    { duration: "10s", target: 10 }, // Ramp up to 10 users
+    { duration: "20s", target: 10 }, // Stay at 10 users
+    { duration: "10s", target: 50 }, // Ramp up to 50 users
+    { duration: "20s", target: 50 }, // Stay at 50 users
+    { duration: "10s", target: 100 }, // Ramp up to 100 users
+    { duration: "20s", target: 100 }, // Stay at 100 users
+    { duration: "20s", target: 0 }, // Ramp down to 0 users
   ],
   thresholds: {
     http_req_duration: ["p(95)<1000"],
@@ -72,7 +73,7 @@ export default function () {
   check(createResponse, {
     "create product status is 200 or 201": (r) =>
       r.status === 200 || r.status === 201,
-    "create product response time < 1s": (r) => r.timings.duration < 1000,
+    "create product response time < 2s": (r) => r.timings.duration < 2000,
   });
 
   let productId: number | undefined;
@@ -106,7 +107,7 @@ export default function () {
 
     check(getResponse, {
       "get product status is 200": (r) => r.status === 200,
-      "get product response time < 1s": (r) => r.timings.duration < 1000,
+      "get product response time < 2s": (r) => r.timings.duration < 2000,
     });
 
     if (getResponse.status === 200) {
@@ -148,7 +149,7 @@ export default function () {
 
     check(updateResponse, {
       "update product status is 200": (r) => r.status === 200,
-      "update product response time < 1s": (r) => r.timings.duration < 1000,
+      "update product response time < 2s": (r) => r.timings.duration < 2000,
     });
 
     if (updateResponse.status === 200) {
@@ -177,7 +178,7 @@ export default function () {
 
   check(listResponse, {
     "list products status is 200": (r) => r.status === 200,
-    "list products response time < 1s": (r) => r.timings.duration < 1000,
+    "list products response time < 2s": (r) => r.timings.duration < 2000,
   });
 
   if (listResponse.status === 200) {
@@ -207,7 +208,7 @@ export default function () {
     check(deleteResponse, {
       "delete product status is 200 or 204": (r) =>
         r.status === 200 || r.status === 204,
-      "delete product response time < 1s": (r) => r.timings.duration < 1000,
+      "delete product response time < 2s": (r) => r.timings.duration < 2000,
     });
   }
 

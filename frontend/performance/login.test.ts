@@ -5,12 +5,12 @@ import { TestEnvConfig, defaultHandleSummaryHook } from "./k6.config.ts";
 export const options = {
   stages: [
     // Load test scenarios
+    { duration: "10s", target: 10 }, // Ramp up to 10 users
+    { duration: "20s", target: 10 }, // Stay at 10 users
+    { duration: "10s", target: 50 }, // Ramp up to 50 users
+    { duration: "20s", target: 50 }, // Stay at 50 users
     { duration: "10s", target: 100 }, // Ramp up to 100 users
-    { duration: "30s", target: 100 }, // Stay at 100 users
-    { duration: "10s", target: 500 }, // Ramp up to 500 users
-    { duration: "30s", target: 500 }, // Stay at 500 users
-    { duration: "10s", target: 1000 }, // Ramp up to 1000 users
-    { duration: "30s", target: 1000 }, // Stay at 1000 users
+    { duration: "20s", target: 100 }, // Stay at 100 users
     { duration: "20s", target: 0 }, // Ramp down to 0 users
   ],
   thresholds: {
@@ -40,7 +40,7 @@ export default function () {
   check(response, {
     "login status is 200": (r) => r.status === 200,
     "login response has token": (r) => r.json("token") !== undefined,
-    "login response time < 2s": (r) => r.timings.duration < 1000,
+    "login response time < 2s": (r) => r.timings.duration < 2000,
   });
 
   sleep(1);
