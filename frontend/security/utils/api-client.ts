@@ -16,7 +16,7 @@ export class SecurityTestClient {
   private client: AxiosInstance;
   private authToken: string | null = null;
 
-  constructor(baseURL: string = "http://localhost:8080") {
+  constructor(baseURL: string = "http://localhost:8080/api") {
     this.client = axios.create({
       baseURL,
       timeout: 10000,

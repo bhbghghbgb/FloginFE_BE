@@ -11,10 +11,10 @@ describe("Authentication Bypass Tests", () => {
 
   it("should prevent unauthorized role escalation", async () => {
     // Test if user can access admin endpoints
-    await client.login("user", "userpassword"); // Assuming you have a test user
+    await client.login("testuser", "Test123"); // Assuming you have a test user
 
     try {
-      const response = await client.post("/api/products", {
+      const response = await client.post("/products", {
         name: "Unauthorized Product",
         price: 100,
         quantity: 1,
@@ -57,7 +57,7 @@ describe("Authentication Bypass Tests", () => {
 
     for (const attempt of bypassAttempts) {
       try {
-        const response = await client.post("/api/auth/login", attempt);
+        const response = await client.post("/auth/login", attempt);
 
         const result = createTestResult(
           `Auth Bypass - Login with ${attempt.username.substring(0, 10)}...`,

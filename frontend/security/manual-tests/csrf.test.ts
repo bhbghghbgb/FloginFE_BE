@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { SecurityTestClient } from "../utils/api-client.js";
+import { SecurityTestClient } from "../utils/api-client";
 import { TEST_PRODUCT, createTestResult } from "../utils/test-utils.js";
 
 describe("CSRF Tests", () => {
@@ -11,10 +11,10 @@ describe("CSRF Tests", () => {
 
   it("should require authentication for protected endpoints", async () => {
     const endpoints = [
-      { method: "GET", url: "/api/products" },
-      { method: "POST", url: "/api/products", data: TEST_PRODUCT },
-      { method: "PUT", url: "/api/products/1", data: TEST_PRODUCT },
-      { method: "DELETE", url: "/api/products/1" },
+      { method: "GET", url: "/products" },
+      { method: "POST", url: "/products", data: TEST_PRODUCT },
+      { method: "PUT", url: "/products/1", data: TEST_PRODUCT },
+      { method: "DELETE", url: "/products/1" },
     ];
 
     for (const endpoint of endpoints) {
@@ -57,7 +57,7 @@ describe("CSRF Tests", () => {
     client.setToken("invalid-token-here");
 
     try {
-      const response = await client.get("/api/products");
+      const response = await client.get("/products");
 
       const result = createTestResult(
         "CSRF/Auth - Request with invalid token",

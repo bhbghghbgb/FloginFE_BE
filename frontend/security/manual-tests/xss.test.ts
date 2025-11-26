@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { SecurityTestClient } from "../utils/api-client.js";
 import {
-    TEST_PRODUCT,
-    XSS_PAYLOADS,
-    createTestResult,
+  TEST_PRODUCT,
+  XSS_PAYLOADS,
+  createTestResult,
 } from "../utils/test-utils.js";
 
 describe("XSS Tests", () => {
@@ -12,8 +12,8 @@ describe("XSS Tests", () => {
   beforeEach(async () => {
     client = new SecurityTestClient(process.env.VITE_API_BASE_URL);
     await client.login(
-      process.env.TEST_USERNAME || "admin",
-      process.env.TEST_PASSWORD || "password"
+      process.env.TEST_USERNAME || "testuser",
+      process.env.TEST_PASSWORD || "Test123"
     );
   });
 

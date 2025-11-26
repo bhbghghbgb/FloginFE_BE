@@ -20,9 +20,7 @@
     "perf:product": "k6 run performance/product.test.ts",
     "perf:breaking": "k6 run performance/breaking-point.test.ts",
     "perf:all": "mkdir -p k6-report && for f in performance/*.test.ts; do echo \"Running $f\"; k6 run $f; done",
-    "test:security": "vitest -c security/vitest.security.config.ts",
-    "test:security:manual": "vitest -c security/vitest.security.config.ts manual-tests",
-    "test:security:zap": "vitest -c security/vitest.security.config.ts automated-tests"
+    "test:security": "vitest -c security/vitest.security.config.ts"
   },
   "dependencies": {
     "axios": "^1.13.2",
