@@ -3,6 +3,7 @@ package com.flogin.backend.controller;
 import com.flogin.backend.dto.ProductRequest;
 import com.flogin.backend.dto.ProductResponse;
 import com.flogin.backend.service.product.IProductService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +21,7 @@ public class ProductController {
     // --- Create product ---
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ProductResponse> createProduct(@Validated @RequestBody ProductRequest request) {
+    public ResponseEntity<ProductResponse> createProduct(@Valid @RequestBody ProductRequest request) {
         ProductResponse response = productService.createProduct(request);
         return ResponseEntity.ok(response);
     }
