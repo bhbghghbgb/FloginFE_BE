@@ -1,6 +1,6 @@
 # Flogin - Full Stack Authentication & Product Management System
 
-A full-stack web application demonstrating modern software testing practices with React frontend and Spring Boot backend, featuring authentication, product management, and comprehensive testing including performance testing with k6.
+A full-stack web application demonstrating modern software testing practices with React frontend and Spring Boot backend, featuring authentication, product management, and comprehensive testing including security, performance, and CI/CD pipeline implementation.
 
 ## 📋 Project Overview
 
@@ -11,9 +11,10 @@ Flogin is a comprehensive full-stack application built for educational purposes 
 - Mock Testing
 - End-to-End (E2E) Testing
 - Performance Testing
+- Security Testing
 - CI/CD Pipeline Implementation
 
-The application provides user authentication with JWT tokens and CRUD operations for product management.
+The application provides user authentication with JWT tokens and CRUD operations for product management with a complete security testing suite.
 
 ## 🛠 Technologies Used
 
@@ -43,9 +44,11 @@ The application provides user authentication with JWT tokens and CRUD operations
 - **H2** - Test database
 - **Spring Data JPA** - Data persistence
 
-### Testing & Performance
+### Testing & Security
 
 - **k6** - Performance and load testing
+- **OWASP ZAP** - Automated security scanning
+- **Vitest Security Tests** - Manual security test scenarios
 - **GitHub Actions** - CI/CD pipelines
 - **Docker & Docker Compose** - Containerization
 - **Nginx** - Reverse proxy
@@ -59,28 +62,28 @@ FloginFE_BE/
 │   ├── src/
 │   │   ├── main/java/com/flogin/backend/
 │   │   │   ├── config/      # Security, JWT, OpenAPI configuration
-│   │   │   ├── controller/  # REST controllers (Auth, Product, Test)
-│   │   │   ├── service/     # Business logic (Auth, Product services)
+│   │   │   ├── controller/  # REST controllers
+│   │   │   ├── service/     # Business logic
 │   │   │   ├── repository/  # Data access layer
-│   │   │   ├── entity/      # JPA entities (User, Product, Role)
+│   │   │   ├── entity/      # JPA entities
 │   │   │   ├── dto/         # Data transfer objects
 │   │   │   └── exception/   # Custom exception handling
-│   │   └── test/java/com/flogin/backend/  # Backend tests
+│   │   └── test/           # Backend tests
 │   └── pom.xml             # Maven dependencies
 ├── frontend/               # React application
 │   ├── src/
-│   │   ├── components/     # React components
-│   │   │   └── __tests__/  # Component tests
-│   │   ├── contexts/       # React contexts (AuthContext)
+│   │   ├── components/     # React components with tests
+│   │   ├── contexts/       # React contexts
 │   │   ├── services/       # API service layer
 │   │   ├── utils/          # Utilities and validation
 │   │   └── mocks/          # MSW mock handlers
 │   ├── e2e/               # Playwright E2E tests
 │   ├── performance/       # k6 performance tests
-│   │   ├── login.test.ts
-│   │   ├── product.test.ts
-│   │   ├── breaking-point.test.ts
-│   │   └── k6.config.ts
+│   ├── security/          # Security testing suite
+│   │   ├── manual-tests/  # Manual security test scenarios
+│   │   ├── types/         # TypeScript definitions
+│   │   ├── utils/         # Security test utilities
+│   │   └── zap-config.yml # OWASP ZAP configuration
 │   └── package.json       # Frontend dependencies
 ├── docker-compose.yml     # Multi-container setup
 ├── nginx.conf            # Nginx configuration
@@ -98,6 +101,7 @@ FloginFE_BE/
 - **Maven 3.9+**
 - **Yarn 4.11.0** (enabled via corepack)
 - **k6** (for performance testing)
+- **Docker** (for OWASP ZAP security scanning)
 
 ### Local Development
 
@@ -174,6 +178,17 @@ yarn test:e2e
 yarn test:e2e:headed
 ```
 
+#### Security Testing
+
+```bash
+cd frontend
+
+# Run manual security tests
+yarn test:security
+
+# Run OWASP ZAP security scan (see Security Testing section for details)
+```
+
 #### Performance Testing with k6
 
 ```bash
@@ -188,52 +203,80 @@ yarn perf:login
 # Run product API performance tests
 yarn perf:product
 
-# Run breaking point tests (load capacity)
+# Run breaking point tests
 yarn perf:breaking
 
-# Run all performance tests and generate reports
+# Run all performance tests
 yarn perf:all
 ```
 
-#### View Test Reports
+## 🛡️ Security Testing
 
-After running tests, you can view various reports:
+The project includes comprehensive security testing with both automated and manual approaches.
 
-- **Backend Coverage**: `backend/target/site/jacoco/index.html`
-- **Backend Unit Tests**: `backend/target/surefire-reports/`
-- **Frontend Coverage**: `frontend/coverage/index.html`
-- **Frontend HTML Reports**: `frontend/html/`
-- **E2E Reports**: `frontend/playwright-report/`
-- **Performance Reports**: `frontend/performance/k6-report/`
+### Manual Security Tests
 
-## 🐳 Docker Deployment
-
-### Production Deployment with Docker Compose
+Manual security tests are written in Vitest and cover common security scenarios:
 
 ```bash
-# Build and start all services
-docker-compose up --build
+cd frontend
 
-# Run in detached mode
-docker-compose up -d
-
-# Stop services
-docker-compose down
+# Run all security tests
+yarn test:security
 ```
 
-The application will be available at:
+**Test Scenarios Covered:**
 
-- **Frontend**: http://localhost
-- **Backend API**: http://localhost/api
-- **API Documentation**: http://localhost/api/swagger-ui.html
+- **SQL Injection** - Input validation and parameterized queries
+- **XSS Attacks** - Cross-site scripting prevention
+- **CSRF Protection** - Cross-site request forgery defenses
+- **Authentication Bypass** - Role and permission validation
+- **Input Validation** - Data sanitization and validation
+- **Rate Limiting** - API abuse prevention
+- **Security Headers** - HTTP security headers verification
+- **Data Sanitization** - Output encoding and data cleaning
 
-### Docker Architecture
+### Automated Security Scanning with OWASP ZAP
 
-The Docker setup uses:
+#### Local Setup
 
-- **Frontend Container**: Serves built React app
-- **Backend Container**: Spring Boot application
-- **Nginx**: Reverse proxy handling API routing (/api → backend)
+1. **Ensure Docker is installed and running**
+
+2. **Start the backend in production mode:**
+
+```bash
+cd backend
+java -jar target/*.jar --spring.profiles.active=prod
+```
+
+3. **Run OWASP ZAP scan:**
+
+```bash
+cd frontend
+
+docker run --rm \
+  --network host \
+  -u root \
+  -v $(pwd)/zap-reports:/zap/reports:rw \
+  -v $(pwd)/security/zap-config.yml:/zap/config.yml:ro \
+  -e TEST_USERNAME=testuser \
+  -e TEST_PASSWORD=Test123 \
+  -t zaproxy/zap-stable zap.sh \
+  -cmd -autorun /zap/config.yml \
+  -config proxy.port=8090
+```
+
+4. **View reports:** Reports will be generated in `frontend/zap-reports/`
+
+#### ZAP Configuration
+
+The `security/zap-config.yml` file configures:
+
+- **Target URL**: Application endpoints to scan
+- **Authentication**: Form-based login with test credentials
+- **Scan Policies**: Active and passive scanning rules
+- **Report Formats**: HTML, JSON, and XML reports
+- **Context**: Application context and excluded URLs
 
 ## 📊 Performance Testing
 
@@ -299,33 +342,29 @@ export DURATION=30s
 yarn perf:login
 ```
 
-## 🔧 Configuration
+## 🐳 Docker Deployment
 
-### Backend Configuration
+### Production Deployment
 
-**`backend/src/main/resources/application.properties`**:
+```bash
+# Build and start all services
+docker-compose up --build
 
-```properties
-server.port=8080
-spring.datasource.url=jdbc:sqlite:flogin.db
-spring.jpa.hibernate.ddl-auto=update
-spring.jpa.show-sql=true
+# Run in detached mode
+docker-compose up -d
 ```
 
-**E2E Test Configuration** (`application-e2e.properties`):
+The application will be available at:
 
-```properties
-spring.datasource.url=jdbc:h2:mem:testdb
-spring.jpa.hibernate.ddl-auto=create-drop
-```
+- **Frontend**: http://localhost
+- **Backend API**: http://localhost/api
+- **API Documentation**: http://localhost/api/swagger-ui.html
 
-### Frontend Configuration
+### Docker Architecture
 
-**Environment Variables** (copy from `.env.example`):
-
-```env
-VITE_API_BASE_URL=http://localhost:8080/api
-```
+- **Frontend Container**: Serves built React app
+- **Backend Container**: Spring Boot application
+- **Nginx**: Reverse proxy handling API routing
 
 ## 📈 Testing Strategy
 
@@ -339,19 +378,20 @@ VITE_API_BASE_URL=http://localhost:8080/api
 - **Backend**: Spring Boot Test with @SpringBootTest
 - **Frontend**: Component integration with MSW
 
-### 3. Mock Testing
+### 3. Security Testing
 
-- **Backend**: Mockito for dependency mocking
-- **Frontend**: MSW for API mocking
+- **Manual Tests**: Vitest-based security scenarios
+- **Automated Scanning**: OWASP ZAP comprehensive security audit
+- **Coverage**: SQL injection, XSS, CSRF, authentication bypass, etc.
 
-### 4. E2E Testing
-
-- **Playwright**: Cross-browser E2E tests with Page Object Model
-
-### 5. Performance Testing
+### 4. Performance Testing
 
 - **k6**: Load testing, stress testing, and capacity planning
 - **Multiple Scenarios**: Smoke, load, stress, and breaking point tests
+
+### 5. E2E Testing
+
+- **Playwright**: Cross-browser E2E tests with Page Object Model
 
 ### 6. CI/CD Pipeline
 
@@ -360,93 +400,81 @@ VITE_API_BASE_URL=http://localhost:8080/api
 
 ## 🤖 CI/CD Pipeline
 
-The project includes two GitHub Actions workflows:
+The project includes comprehensive GitHub Actions workflows:
 
 ### 1. CI - Build and Test (`ci.yml`)
 
 - Runs on push and pull requests to main branch
-- Executes frontend, backend, E2E, and performance tests
+- Executes frontend, backend, E2E, performance, and security tests
 - Generates and uploads test reports as artifacts
-- Performance tests run against live backend instance
+- Includes OWASP ZAP automated security scanning
 
 ### 2. Deploy GitHub Pages (`pages.yml`)
 
 - Triggers after CI workflow completes
 - Deploys test reports to GitHub Pages
-- Provides accessible test results dashboard including performance metrics
+- Provides accessible test results dashboard including security and performance metrics
 
 ## 🎯 Key Features
 
-### Authentication
+### Authentication & Security
 
-- JWT-based authentication
+- JWT-based authentication with Spring Security
 - Role-based authorization (USER/ADMIN)
 - Secure password storage with BCrypt
-- Login/Logout functionality
+- Comprehensive security testing suite
+- Input validation and sanitization
 
 ### Product Management
 
 - CRUD operations for products
-- Form validation
-- Protected routes
-- Responsive UI
+- Form validation with Yup schemas
+- Protected routes with role-based access
+- Responsive UI with React components
 
 ### Testing Coverage
 
 - Comprehensive test suites at all levels
-- Performance and load testing
+- Security testing with OWASP ZAP and manual tests
+- Performance and load testing with k6
 - Code coverage reporting
-- Automated test execution
-- Visual test reports
+- Automated test execution and reporting
 
-## 📝 API Endpoints
+## 🔧 Configuration
 
-### Authentication
+### Backend Configuration
 
-- `POST /api/auth/login` - User login
-- `GET /api/test/public` - Public endpoint
-- `GET /api/test/user` - User role required
-- `GET /api/test/admin` - Admin role required
+**`application.properties`**:
 
-### Products
+```properties
+server.port=8080
+spring.datasource.url=jdbc:sqlite:flogin.db
+spring.jpa.hibernate.ddl-auto=update
+```
 
-- `GET /api/products` - Get all products
-- `GET /api/products/{id}` - Get product by ID
-- `POST /api/products` - Create new product (ADMIN)
-- `PUT /api/products/{id}` - Update product (ADMIN)
-- `DELETE /api/products/{id}` - Delete product (ADMIN)
+### Frontend Configuration
+
+**Environment Variables**:
+
+```env
+VITE_API_BASE_URL=http://localhost:8080/api
+```
 
 ## 🔍 Troubleshooting
 
 ### Common Issues
 
-1. **Node.js version mismatch**
+1. **Security Test Dependencies**
 
-   ```bash
-   # Use Node 20 or higher
-   node --version
-   ```
+   - Ensure Docker is running for OWASP ZAP scans
+   - Backend must be running on port 8080 for security tests
 
-2. **Java version issues**
+2. **Performance Testing**
 
-   ```bash
-   # Ensure Java 21 is installed
-   java --version
-   ```
+   - Install k6 using platform-specific instructions
+   - Backend must be running for performance tests
 
-3. **Yarn installation**
-
-   ```bash
-   # Enable corepack for Yarn 4
-   corepack enable
-   ```
-
-4. **k6 installation**
-
-   - Follow platform-specific installation instructions above
-   - Verify with `k6 version`
-
-5. **Port conflicts**
+3. **Port Conflicts**
    - Backend: Change `server.port` in `application.properties`
    - Frontend: Use `yarn dev --port 3000`
 
@@ -454,14 +482,15 @@ The project includes two GitHub Actions workflows:
 
 - [Spring Boot Documentation](https://spring.io/projects/spring-boot)
 - [React Documentation](https://reactjs.org/docs)
+- [OWASP ZAP Documentation](https://www.zaproxy.org/docs/)
+- [k6 Documentation](https://k6.io/docs)
 - [Vitest Documentation](https://vitest.dev)
 - [Playwright Documentation](https://playwright.dev)
-- [k6 Documentation](https://k6.io/docs)
 
 ## 👥 Development
 
-This project was developed as part of a University Software Testing course to demonstrate comprehensive testing methodologies in a full-stack application environment, including performance testing and CI/CD integration.
+This project was developed as part of a University Software Testing course to demonstrate comprehensive testing methodologies in a full-stack application environment, including security testing, performance testing, and CI/CD integration.
 
 ---
 
-_For detailed test reports, coverage analysis, and performance metrics, check the GitHub Pages deployment after running the CI/CD pipeline._
+_For detailed test reports, security scan results, coverage analysis, and performance metrics, check the GitHub Pages deployment after running the CI/CD pipeline._
