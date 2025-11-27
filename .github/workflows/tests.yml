@@ -3,8 +3,18 @@ name: CI - Build and Test
 on:
   push:
     branches: [main]
+    paths:
+      - "frontend/**"
+      - "backend/**"
+      - "*.html"
+      - ".github/workflows/**"
   pull_request:
     branches: [main]
+    paths:
+      - "frontend/**"
+      - "backend/**"
+      - "*.html"
+      - ".github/workflows/**"
 
 jobs:
   # -------------------------
@@ -288,7 +298,7 @@ jobs:
           yarn preview &
           echo "FRONTEND_PID=$!" >> $GITHUB_ENV
         env:
-          VITE_API_BASE_URL: "http://localhost:8080/api" 
+          VITE_API_BASE_URL: "http://localhost:8080/api"
         working-directory: frontend
 
       - name: Wait for Frontend
