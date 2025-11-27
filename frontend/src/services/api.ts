@@ -37,6 +37,9 @@ export interface ProductResponse {
 class ApiClient {
   private client: AxiosInstance;
 
+  private readonly API_BASE_URL =
+    import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api";
+
   constructor(baseURL: string = import.meta.env.VITE_API_BASE_URL) {
     this.client = axios.create({
       baseURL,
@@ -80,7 +83,7 @@ class ApiClient {
     credentials: LoginRequest
   ): Promise<AxiosResponse<LoginResponse>> {
     return this.client.post<LoginResponse>(
-      import.meta.env.VITE_API_BASE_URL + "/auth/login",
+      this.API_BASE_URL + "/auth/login",
       credentials
     );
   }
@@ -92,40 +95,30 @@ class ApiClient {
     page?: number;
     size?: number;
   }): Promise<AxiosResponse<{ content: ProductResponse[] }>> {
-    return this.client.get(import.meta.env.VITE_API_BASE_URL + "/products", {
+    return this.client.get(this.API_BASE_URL + "/products", {
       params,
     });
   }
 
   async getProductById(id: number): Promise<AxiosResponse<ProductResponse>> {
-    return this.client.get(
-      import.meta.env.VITE_API_BASE_URL + `/products/${id}`
-    );
+    return this.client.get(this.API_BASE_URL + `/products/${id}`);
   }
 
   async createProduct(
     product: ProductRequest
   ): Promise<AxiosResponse<ProductResponse>> {
-    return this.client.post(
-      import.meta.env.VITE_API_BASE_URL + "/products",
-      product
-    );
+    return this.client.post(this.API_BASE_URL + "/products", product);
   }
 
   async updateProduct(
     id: number,
     product: ProductRequest
   ): Promise<AxiosResponse<ProductResponse>> {
-    return this.client.put(
-      import.meta.env.VITE_API_BASE_URL + `/products/${id}`,
-      product
-    );
+    return this.client.put(this.API_BASE_URL + `/products/${id}`, product);
   }
 
   async deleteProduct(id: number): Promise<AxiosResponse<void>> {
-    return this.client.delete(
-      import.meta.env.VITE_API_BASE_URL + `/products/${id}`
-    );
+    return this.client.delete(this.API_BASE_URL + `/products/${id}`);
   }
 }
 

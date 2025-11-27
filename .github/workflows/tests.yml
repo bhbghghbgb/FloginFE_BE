@@ -287,6 +287,8 @@ jobs:
         run: |
           yarn preview &
           echo "FRONTEND_PID=$!" >> $GITHUB_ENV
+        env:
+          VITE_API_BASE_URL: "http://localhost:8080/api" 
         working-directory: frontend
 
       - name: Wait for Frontend
@@ -553,13 +555,18 @@ jobs:
           timeout: 60
           interval: 1
 
+      - name: Prepare ZAP Security Reports
+        if: always()
+        run: mkdir -p ./zap-reports/zap-reports
+        working-directory: frontend
+
       # --- Run OWASP ZAP Scan (Using Automation Framework) ---
       - name: Run OWASP ZAP Full Scan with Authentication
         run: |
           docker run --rm \
             --network host \
             -u root \
-            -v $(pwd)/zap-reports:/home/zap/zap-reports/:rw \
+            -v $(pwd)/zap-reports/zap-reports:/home/zap/zap-reports/:rw \
             -v $(pwd)/security/zap-config.yml:/home/zap/zap-config.yml \
             -e TEST_USERNAME=${{ env.TEST_USERNAME }} \
             -e TEST_PASSWORD=${{ env.TEST_PASSWORD }} \
@@ -577,11 +584,6 @@ jobs:
         run: kill ${{ env.BACKEND_PID }} || true
 
       # --- Upload Security Reports ---
-      - name: Prepare ZAP Security Reports
-        if: always()
-        run: mkdir tmp-dir && mv zap-reports tmp-dir/ && mv tmp-dir zap-reports
-        working-directory: frontend
-
       - name: Upload ZAP Security Reports
         uses: actions/upload-artifact@v4
         with:
