@@ -495,7 +495,12 @@ jobs:
         if: always()
         run: kill ${{ env.BACKEND_PID }} || true
 
-      # --- Upload Security Reports ---
+      # --- Upload Manual Security Reports ---
+      - name: Prepare Manual Security Reports
+        if: always()
+        run: mkdir tmp-dir && mv security-report tmp-dir/ && mv tmp-dir security-report
+        working-directory: frontend
+
       - name: Upload Manual Security Reports
         uses: actions/upload-artifact@v4
         with:
@@ -572,6 +577,11 @@ jobs:
         run: kill ${{ env.BACKEND_PID }} || true
 
       # --- Upload Security Reports ---
+      - name: Prepare ZAP Security Reports
+        if: always()
+        run: mkdir tmp-dir && mv zap-reports tmp-dir/ && mv tmp-dir zap-reports
+        working-directory: frontend
+
       - name: Upload ZAP Security Reports
         uses: actions/upload-artifact@v4
         with:
