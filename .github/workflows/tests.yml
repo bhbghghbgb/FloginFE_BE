@@ -147,7 +147,7 @@ jobs:
       - name: Install browsers
         uses: borales/actions-yarn@v5
         with:
-          cmd: run playwright install --with-deps chromium
+          cmd: run playwright install --with-deps chromium firefox
           dir: frontend
 
       # --- Package backend and start server ---
@@ -368,7 +368,6 @@ jobs:
             -t zaproxy/zap-stable zap.sh \
             -cmd -autorun /home/zap/zap-config.yml \
             -config proxy.port=8090 \
-            -loglevel debug
         env:
           TEST_USERNAME: "testuser"
           TEST_PASSWORD: "Test123"

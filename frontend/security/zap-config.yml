@@ -37,11 +37,6 @@ jobs:
       apiUrl: "${api_spec_url}"
       targetUrl: "${target_base}"
 
-  - name: passiveScanWait
-    type: passiveScan-wait
-    parameters:
-      maxDuration: 5
-
   - name: activeScan
     type: activeScan
     parameters:
@@ -49,6 +44,11 @@ jobs:
       user: testUser
       policy: "Default Policy"
       maxScanDurationInMins: 10
+
+  - name: passiveScanWait
+    type: passiveScan-wait
+    parameters:
+      maxDuration: 5
 
   - name: report-high-level
     type: report
