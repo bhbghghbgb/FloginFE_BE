@@ -31,7 +31,6 @@ describe("Data Sanitization Tests", () => {
           category: "Test",
         });
 
-        // Check if response contains unsanitized input
         const responseContainsDangerousChars =
           response.data && JSON.stringify(response.data).includes("<script>");
 
@@ -39,25 +38,41 @@ describe("Data Sanitization Tests", () => {
           `Data Sanitization - Special chars in name`,
           "HIGH",
           !responseContainsDangerousChars,
+          "!responseContainsDangerousChars",
           "Should sanitize or reject dangerous characters",
           responseContainsDangerousChars
             ? "Dangerous chars in response"
             : "Input handled safely",
-          `Test data sanitization with: ${name.substring(0, 20)}...`
+          `Test data sanitization with: ${name.substring(0, 20)}...`,
+          {
+            method: "POST",
+            url: "/products",
+            payload: { name: name.substring(0, 50) + "..." },
+          },
+          {
+            status: response.status,
+            containsDangerousChars: responseContainsDangerousChars,
+          },
+          "Implement input validation and output encoding for special characters"
         );
 
-        expect(result.passed).toBe(true);
+        expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
       } catch (error: any) {
-        // Rejection is also acceptable
         const result = createTestResult(
           `Data Sanitization - Special chars in name`,
           "HIGH",
           true,
+          "true", // Exception means input was rejected
           "Should sanitize or reject dangerous characters",
           "Input rejected (safe)",
-          `Test data sanitization with: ${name.substring(0, 20)}...`
+          `Test data sanitization with: ${name.substring(0, 20)}...`,
+          {
+            method: "POST",
+            url: "/products",
+            payload: { name: name.substring(0, 50) + "..." },
+          }
         );
-        expect(result.passed).toBe(true);
+        expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
       }
     }
   });
@@ -82,24 +97,39 @@ describe("Data Sanitization Tests", () => {
         const result = createTestResult(
           `Data Sanitization - JSON injection`,
           "HIGH",
-          response.status === 400 || response.status === 200, // Should either reject or handle safely
+          response.status === 400 || response.status === 200,
+          "response.status === 400 || response.status === 200",
           "Should prevent JSON injection attacks",
           `Received status ${response.status}`,
-          `Test JSON injection with: ${payload.substring(0, 20)}...`
+          `Test JSON injection with: ${payload.substring(0, 20)}...`,
+          {
+            method: "POST",
+            url: "/products",
+            payload: { name: payload.substring(0, 50) + "..." },
+          },
+          { status: response.status },
+          "Use proper JSON parsing and validation instead of string concatenation"
         );
 
-        expect(result.passed).toBe(true);
+        expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
       } catch (error: any) {
         const status = error.response?.status;
         const result = createTestResult(
           `Data Sanitization - JSON injection`,
           "HIGH",
           status === 400 || status === 200,
+          "status === 400 || status === 200",
           "Should prevent JSON injection attacks",
           `Received status ${status}`,
-          `Test JSON injection with: ${payload.substring(0, 20)}...`
+          `Test JSON injection with: ${payload.substring(0, 20)}...`,
+          {
+            method: "POST",
+            url: "/products",
+            payload: { name: payload.substring(0, 50) + "..." },
+          },
+          { status }
         );
-        expect(result.passed).toBe(true);
+        expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
       }
     }
   });

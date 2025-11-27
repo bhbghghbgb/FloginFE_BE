@@ -23,36 +23,51 @@ describe("SQL Injection Tests", () => {
           `SQL Injection - Login with ${payload.substring(0, 20)}...`,
           "CRITICAL",
           response.status !== 200 || !response.data.token,
+          "response.status !== 200 || !response.data.token",
           "Should reject login with SQL injection payload",
           response.status === 200
             ? "Login succeeded (VULNERABLE)"
             : "Login rejected (SECURE)",
           `Test SQL injection in login with payload: ${payload}`,
-          { username: payload, password: "***" },
+          {
+            method: "POST",
+            url: "/auth/login",
+            payload: {
+              username: payload.substring(0, 50) + "...",
+              password: "***",
+            },
+          },
           { status: response.status, hasToken: !!response.data.token },
-          "Implement parameterized queries and input validation"
+          "Implement parameterized queries and use prepared statements instead of string concatenation"
         );
 
         results.push(result);
-        expect(result.passed).toBe(true);
+        expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
       } catch (error) {
-        // Expected behavior - login should fail
         const result = createTestResult(
           `SQL Injection - Login with ${payload.substring(0, 20)}...`,
           "CRITICAL",
           true,
+          "true", // Exception means safe
           "Should reject login with SQL injection payload",
           "Login rejected (SECURE)",
-          `Test SQL injection in login with payload: ${payload}`
+          `Test SQL injection in login with payload: ${payload}`,
+          {
+            method: "POST",
+            url: "/auth/login",
+            payload: {
+              username: payload.substring(0, 50) + "...",
+              password: "***",
+            },
+          }
         );
         results.push(result);
-        expect(result.passed).toBe(true);
+        expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
       }
     }
   });
 
   it("should prevent SQL injection in product search", async () => {
-    // First login as admin
     await client.login(process.env.TEST_USERNAME, process.env.TEST_PASSWORD);
 
     for (const payload of SQL_INJECTION_PAYLOADS) {
@@ -65,29 +80,44 @@ describe("SQL Injection Tests", () => {
           `SQL Injection - Product search with ${payload.substring(0, 20)}...`,
           "HIGH",
           response.status !== 200 || !Array.isArray(response.data?.content),
+          "response.status !== 200 || !Array.isArray(response.data?.content)",
           "Should handle SQL injection payload safely",
           response.status === 200
             ? "Request succeeded (check logs)"
             : "Request handled safely",
           `Test SQL injection in product search with payload: ${payload}`,
-          { search: payload },
-          { status: response.status }
+          {
+            method: "GET",
+            url: `/products?name=${encodeURIComponent(
+              payload.substring(0, 50) + "..."
+            )}`,
+          },
+          {
+            status: response.status,
+            isArray: Array.isArray(response.data?.content),
+          }
         );
 
         results.push(result);
-        expect(result.passed).toBe(true);
+        expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
       } catch (error) {
-        // Expected for some cases
         const result = createTestResult(
           `SQL Injection - Product search with ${payload.substring(0, 20)}...`,
           "HIGH",
           true,
+          "true", // Exception means safe
           "Should handle SQL injection payload safely",
           "Request handled safely",
-          `Test SQL injection in product search with payload: ${payload}`
+          `Test SQL injection in product search with payload: ${payload}`,
+          {
+            method: "GET",
+            url: `/products?name=${encodeURIComponent(
+              payload.substring(0, 50) + "..."
+            )}`,
+          }
         );
         results.push(result);
-        expect(result.passed).toBe(true);
+        expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
       }
     }
   });

@@ -28,26 +28,44 @@ describe("XSS Tests", () => {
         const result = createTestResult(
           `XSS - Product creation with ${payload.substring(0, 20)}...`,
           "HIGH",
-          response.status === 200, // Should accept but sanitize
+          response.status === 200,
+          "response.status === 200",
           "Should accept input but sanitize XSS payloads",
           response.status === 200 ? "Request accepted" : "Request rejected",
           `Test XSS in product creation with payload: ${payload}`,
-          { ...productData, name: `Test ${payload.substring(0, 10)}...` },
+          {
+            method: "POST",
+            url: "/products",
+            payload: {
+              name: `Test ${payload.substring(0, 10)}...`,
+              description: payload.substring(0, 50) + "...",
+            },
+          },
           { status: response.status },
-          "Implement output encoding and input validation"
+          "Implement output encoding and input validation using libraries like OWASP Java Encoder"
         );
 
-        expect(result.passed).toBe(true);
+        expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
       } catch (error: any) {
         const result = createTestResult(
           `XSS - Product creation with ${payload.substring(0, 20)}...`,
           "HIGH",
-          error.response?.status === 400, // Should reject or sanitize
+          error.response?.status === 400,
+          "error.response?.status === 400",
           "Should reject or sanitize XSS payloads",
           `Request rejected with status ${error.response?.status}`,
-          `Test XSS in product creation with payload: ${payload}`
+          `Test XSS in product creation with payload: ${payload}`,
+          {
+            method: "POST",
+            url: "/products",
+            payload: {
+              name: `Test ${payload.substring(0, 10)}...`,
+              description: payload.substring(0, 50) + "...",
+            },
+          },
+          { status: error.response?.status }
         );
-        expect(result.passed).toBe(true);
+        expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
       }
     }
   });

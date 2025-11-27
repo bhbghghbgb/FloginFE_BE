@@ -35,12 +35,20 @@ describe("Input Validation Tests", () => {
           }"`,
           "MEDIUM",
           response.status === 400,
+          "response.status === 400",
           "Should reject invalid product names",
           `Received status ${response.status}`,
-          `Test product name validation: ${name}`
+          `Test product name validation: ${name}`,
+          {
+            method: "POST",
+            url: "/products",
+            payload: { name, price: 1000, quantity: 10 },
+          },
+          { status: response.status },
+          "Implement server-side validation for all input fields"
         );
 
-        expect(result.passed).toBe(true);
+        expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
       } catch (error: any) {
         const status = error.response?.status;
         const result = createTestResult(
@@ -49,11 +57,18 @@ describe("Input Validation Tests", () => {
           }"`,
           "MEDIUM",
           status === 400,
+          "status === 400",
           "Should reject invalid product names",
           `Received status ${status}`,
-          `Test product name validation: ${name}`
+          `Test product name validation: ${name}`,
+          {
+            method: "POST",
+            url: "/products",
+            payload: { name, price: 1000, quantity: 10 },
+          },
+          { status }
         );
-        expect(result.passed).toBe(true);
+        expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
       }
     }
   });
@@ -82,23 +97,37 @@ describe("Input Validation Tests", () => {
           `Input Validation - Price ${price}`,
           "MEDIUM",
           response.status === 400,
+          "response.status === 400",
           "Should reject invalid prices",
           `Received status ${response.status}`,
-          `Test price validation: ${price}`
+          `Test price validation: ${price}`,
+          {
+            method: "POST",
+            url: "/products",
+            payload: { name: "Test Product", price, quantity: 10 },
+          },
+          { status: response.status }
         );
 
-        expect(result.passed).toBe(true);
+        expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
       } catch (error: any) {
         const status = error.response?.status;
         const result = createTestResult(
           `Input Validation - Price ${price}`,
           "MEDIUM",
           status === 400,
+          "status === 400",
           "Should reject invalid prices",
           `Received status ${status}`,
-          `Test price validation: ${price}`
+          `Test price validation: ${price}`,
+          {
+            method: "POST",
+            url: "/products",
+            payload: { name: "Test Product", price, quantity: 10 },
+          },
+          { status }
         );
-        expect(result.passed).toBe(true);
+        expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
       }
     }
   });
@@ -125,29 +154,43 @@ describe("Input Validation Tests", () => {
           `Input Validation - Quantity ${quantity}`,
           "MEDIUM",
           response.status === 400,
+          "response.status === 400",
           "Should reject invalid quantities",
           `Received status ${response.status}`,
-          `Test quantity validation: ${quantity}`
+          `Test quantity validation: ${quantity}`,
+          {
+            method: "POST",
+            url: "/products",
+            payload: { name: "Test Product", price: 1000, quantity },
+          },
+          { status: response.status }
         );
 
-        expect(result.passed).toBe(true);
+        expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
       } catch (error: any) {
         const status = error.response?.status;
         const result = createTestResult(
           `Input Validation - Quantity ${quantity}`,
           "MEDIUM",
           status === 400,
+          "status === 400",
           "Should reject invalid quantities",
           `Received status ${status}`,
-          `Test quantity validation: ${quantity}`
+          `Test quantity validation: ${quantity}`,
+          {
+            method: "POST",
+            url: "/products",
+            payload: { name: "Test Product", price: 1000, quantity },
+          },
+          { status }
         );
-        expect(result.passed).toBe(true);
+        expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
       }
     }
   });
 
   it("should validate description length", async () => {
-    const longDescription = "a".repeat(501); // max 500
+    const longDescription = "a".repeat(501);
 
     try {
       const response = await client.post("/products", {
@@ -162,23 +205,37 @@ describe("Input Validation Tests", () => {
         "Input Validation - Description too long",
         "LOW",
         response.status === 400,
+        "response.status === 400",
         "Should reject overly long descriptions",
         `Received status ${response.status}`,
-        "Test description length validation"
+        "Test description length validation",
+        {
+          method: "POST",
+          url: "/products",
+          payload: { descriptionLength: longDescription.length },
+        },
+        { status: response.status }
       );
 
-      expect(result.passed).toBe(true);
+      expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
     } catch (error: any) {
       const status = error.response?.status;
       const result = createTestResult(
         "Input Validation - Description too long",
         "LOW",
         status === 400,
+        "status === 400",
         "Should reject overly long descriptions",
         `Received status ${status}`,
-        "Test description length validation"
+        "Test description length validation",
+        {
+          method: "POST",
+          url: "/products",
+          payload: { descriptionLength: longDescription.length },
+        },
+        { status }
       );
-      expect(result.passed).toBe(true);
+      expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
     }
   });
 
@@ -199,23 +256,30 @@ describe("Input Validation Tests", () => {
           `Input Validation - Invalid login format`,
           "MEDIUM",
           response.status === 400,
+          "response.status === 400",
           "Should reject malformed login requests",
           `Received status ${response.status}`,
-          `Test login validation: ${JSON.stringify(login)}`
+          `Test login validation: ${JSON.stringify(login)}`,
+          { method: "POST", url: "/auth/login", payload: login },
+          { status: response.status },
+          "Implement comprehensive input validation for all endpoints"
         );
 
-        expect(result.passed).toBe(true);
+        expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
       } catch (error: any) {
         const status = error.response?.status;
         const result = createTestResult(
           `Input Validation - Invalid login format`,
           "MEDIUM",
           status === 400,
+          "status === 400",
           "Should reject malformed login requests",
           `Received status ${status}`,
-          `Test login validation: ${JSON.stringify(login)}`
+          `Test login validation: ${JSON.stringify(login)}`,
+          { method: "POST", url: "/auth/login", payload: login },
+          { status }
         );
-        expect(result.passed).toBe(true);
+        expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
       }
     }
   });

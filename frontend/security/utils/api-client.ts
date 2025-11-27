@@ -1,17 +1,5 @@
 import axios, { AxiosInstance, AxiosResponse } from "axios";
 
-export interface SecurityTestResult {
-  testName: string;
-  severity: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
-  passed: boolean;
-  description: string;
-  request?: any;
-  response?: any;
-  expected: string;
-  actual: string;
-  recommendation?: string;
-}
-
 export class SecurityTestClient {
   private client: AxiosInstance;
   private authToken: string | null = null;
@@ -26,7 +14,10 @@ export class SecurityTestClient {
     });
   }
 
-  async login(username: string, password: string): Promise<string> {
+  async login(
+    username: string | undefined,
+    password: string | undefined
+  ): Promise<string> {
     try {
       const response: AxiosResponse = await this.client.post("/auth/login", {
         username: username || "testuser",

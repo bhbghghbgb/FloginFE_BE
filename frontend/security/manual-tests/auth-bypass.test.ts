@@ -10,8 +10,7 @@ describe("Authentication Bypass Tests", () => {
   });
 
   it("should prevent unauthorized role escalation", async () => {
-    // Test if user can access admin endpoints
-    await client.login("testuser", "Test123"); // Assuming you have a test user
+    await client.login("testuser", "Test123");
 
     try {
       const response = await client.post("/products", {
@@ -26,23 +25,29 @@ describe("Authentication Bypass Tests", () => {
         "Auth Bypass - User accessing admin endpoint",
         "HIGH",
         response.status === 403,
+        "response.status === 403",
         "Should reject unauthorized access to admin endpoints",
         `Received status ${response.status}`,
-        "Test if regular user can access admin-only endpoints"
+        "Test if regular user can access admin-only endpoints",
+        { method: "POST", url: "/products", role: "user" },
+        { status: response.status }
       );
 
-      expect(result.passed).toBe(true);
+      expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
     } catch (error: any) {
       const status = error.response?.status;
       const result = createTestResult(
         "Auth Bypass - User accessing admin endpoint",
         "HIGH",
         status === 403,
+        "status === 403",
         "Should reject unauthorized access to admin endpoints",
         `Received status ${status}`,
-        "Test if regular user can access admin-only endpoints"
+        "Test if regular user can access admin-only endpoints",
+        { method: "POST", url: "/products", role: "user" },
+        { status }
       );
-      expect(result.passed).toBe(true);
+      expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
     }
   });
 
@@ -63,28 +68,34 @@ describe("Authentication Bypass Tests", () => {
           `Auth Bypass - Login with ${attempt.username.substring(0, 10)}...`,
           "CRITICAL",
           response.status !== 200 || !response.data.token,
+          "response.status !== 200 || !response.data.token",
           "Should reject invalid login attempts",
           response.status === 200
             ? "Login succeeded (VULNERABLE)"
             : "Login rejected (SECURE)",
           `Test authentication bypass with credentials: ${JSON.stringify(
             attempt
-          )}`
+          )}`,
+          { endpoint: "/auth/login", credentials: attempt },
+          { status: response.status, hasToken: !!response.data.token },
+          "Implement strong authentication with parameterized queries and input validation"
         );
 
-        expect(result.passed).toBe(true);
+        expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
       } catch (error: any) {
         const result = createTestResult(
           `Auth Bypass - Login with ${attempt.username.substring(0, 10)}...`,
           "CRITICAL",
           true,
+          "true", // Exception means login was rejected
           "Should reject invalid login attempts",
           "Login rejected (SECURE)",
           `Test authentication bypass with credentials: ${JSON.stringify(
             attempt
-          )}`
+          )}`,
+          { endpoint: "/auth/login", credentials: attempt }
         );
-        expect(result.passed).toBe(true);
+        expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
       }
     }
   });

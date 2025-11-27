@@ -2,6 +2,7 @@ export interface SecurityTestResult {
   testName: string;
   severity: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
   passed: boolean;
+  passingExpression: string;
   description: string;
   request?: any;
   response?: any;

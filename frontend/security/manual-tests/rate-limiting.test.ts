@@ -10,13 +10,13 @@ describe("Rate Limiting Tests", () => {
   });
 
   it("should test login rate limiting", async () => {
-    const attempts = 10; // Try multiple rapid login attempts
+    const attempts = 10;
     let successCount = 0;
 
     for (let i = 0; i < attempts; i++) {
       try {
         const response = await client.post("/auth/login", {
-          username: `user${i}`, // Different usernames to avoid account lockout
+          username: `user${i}`,
           password: "wrongpassword",
         });
 
@@ -24,7 +24,6 @@ describe("Rate Limiting Tests", () => {
           successCount++;
         }
 
-        // Small delay between requests
         await new Promise((resolve) => setTimeout(resolve, 100));
       } catch (error) {
         // Expected for failed logins
@@ -34,20 +33,24 @@ describe("Rate Limiting Tests", () => {
     const result = createTestResult(
       "Rate Limiting - Login endpoint",
       "MEDIUM",
-      successCount < attempts, // Should not all succeed
+      successCount < attempts,
+      "successCount < attempts",
       "Should implement rate limiting on login",
       `${successCount}/${attempts} login attempts succeeded`,
       "Test if login endpoint has rate limiting",
-      null,
-      { attempts, successes: successCount },
-      "Implement rate limiting using Spring Security or dedicated library"
+      {
+        endpoint: "/auth/login",
+        attempts,
+        interval: "100ms",
+      },
+      { successes: successCount, rate: `${successCount}/${attempts}` },
+      "Implement rate limiting using Spring Security or dedicated library like Bucket4j"
     );
 
-    expect(result.passed).toBe(true);
+    expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
   });
 
   it("should test API endpoint rate limiting", async () => {
-    // First get a valid token
     await client.login(process.env.TEST_USERNAME, process.env.TEST_PASSWORD);
 
     const attempts = 20;
@@ -60,7 +63,6 @@ describe("Rate Limiting Tests", () => {
           successCount++;
         }
 
-        // Very small delay for rapid requests
         await new Promise((resolve) => setTimeout(resolve, 50));
       } catch (error) {
         // Might get rate limited
@@ -70,14 +72,21 @@ describe("Rate Limiting Tests", () => {
     const result = createTestResult(
       "Rate Limiting - Product API",
       "LOW",
-      true, // This is informational - rate limiting on API might not be critical
+      true,
+      "true", // Informational test
       "Should consider rate limiting on API endpoints",
       `${successCount}/${attempts} product API requests succeeded`,
       "Test if product API has rate limiting",
-      null,
-      { attempts, successes: successCount }
+      {
+        endpoint: "/products",
+        method: "GET",
+        attempts,
+        interval: "50ms",
+      },
+      { successes: successCount, rate: `${successCount}/${attempts}` },
+      "Consider implementing rate limiting for API endpoints to prevent abuse"
     );
 
-    expect(result.passed).toBe(true);
+    expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
   });
 });

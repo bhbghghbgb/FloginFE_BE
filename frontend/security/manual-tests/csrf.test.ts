@@ -19,7 +19,6 @@ describe("CSRF Tests", () => {
 
     for (const endpoint of endpoints) {
       try {
-        // Clear authentication
         client.clearAuth();
 
         const response = await client.request(
@@ -32,23 +31,29 @@ describe("CSRF Tests", () => {
           `CSRF/Auth - ${endpoint.method} ${endpoint.url} without auth`,
           "HIGH",
           response.status === 401 || response.status === 403,
+          "response.status === 401 || response.status === 403",
           "Should reject requests without valid authentication",
           `Received status ${response.status}`,
-          `Test access to protected endpoint without authentication`
+          `Test access to protected endpoint without authentication`,
+          { method: endpoint.method, url: endpoint.url, authenticated: false },
+          { status: response.status }
         );
 
-        expect(result.passed).toBe(true);
+        expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
       } catch (error: any) {
         const status = error.response?.status;
         const result = createTestResult(
           `CSRF/Auth - ${endpoint.method} ${endpoint.url} without auth`,
           "HIGH",
           status === 401 || status === 403,
+          "status === 401 || status === 403",
           "Should reject requests without valid authentication",
           `Received status ${status}`,
-          `Test access to protected endpoint without authentication`
+          `Test access to protected endpoint without authentication`,
+          { method: endpoint.method, url: endpoint.url, authenticated: false },
+          { status }
         );
-        expect(result.passed).toBe(true);
+        expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
       }
     }
   });
@@ -63,23 +68,30 @@ describe("CSRF Tests", () => {
         "CSRF/Auth - Request with invalid token",
         "MEDIUM",
         response.status === 401,
+        "response.status === 401",
         "Should reject requests with invalid JWT tokens",
         `Received status ${response.status}`,
-        "Test API with invalid JWT token"
+        "Test API with invalid JWT token",
+        { method: "GET", url: "/products", token: "invalid-token-here" },
+        { status: response.status },
+        "Implement proper JWT validation with signature verification"
       );
 
-      expect(result.passed).toBe(true);
+      expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
     } catch (error: any) {
       const status = error.response?.status;
       const result = createTestResult(
         "CSRF/Auth - Request with invalid token",
         "MEDIUM",
         status === 401,
+        "status === 401",
         "Should reject requests with invalid JWT tokens",
         `Received status ${status}`,
-        "Test API with invalid JWT token"
+        "Test API with invalid JWT token",
+        { method: "GET", url: "/products", token: "invalid-token-here" },
+        { status }
       );
-      expect(result.passed).toBe(true);
+      expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
     }
   });
 });
