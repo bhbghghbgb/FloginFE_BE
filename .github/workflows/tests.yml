@@ -360,6 +360,7 @@ jobs:
         run: |
           docker run --rm \
             --network host \
+            -u $(id -u):$(id -g) \
             -v $(pwd)/zap-reports:/home/zap/zap-reports/:rw \
             -v $(pwd)/security/zap-config.yml:/home/zap/zap-config.yml \
             -e TEST_USERNAME=${{ env.TEST_USERNAME }} \

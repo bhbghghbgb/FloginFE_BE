@@ -11,10 +11,7 @@ describe("XSS Tests", () => {
 
   beforeEach(async () => {
     client = new SecurityTestClient(process.env.VITE_API_BASE_URL);
-    await client.login(
-      process.env.TEST_USERNAME || "testuser",
-      process.env.TEST_PASSWORD || "Test123"
-    );
+    await client.login(process.env.TEST_USERNAME, process.env.TEST_PASSWORD);
   });
 
   it("should sanitize XSS payloads in product creation", async () => {

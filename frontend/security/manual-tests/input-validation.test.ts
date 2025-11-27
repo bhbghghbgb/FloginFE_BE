@@ -7,10 +7,7 @@ describe("Input Validation Tests", () => {
 
   beforeEach(async () => {
     client = new SecurityTestClient(process.env.VITE_API_BASE_URL);
-    await client.login(
-      process.env.TEST_USERNAME || "testuser",
-      process.env.TEST_PASSWORD || "Test123"
-    );
+    await client.login(process.env.TEST_USERNAME, process.env.TEST_PASSWORD);
   });
 
   it("should validate product name constraints", async () => {

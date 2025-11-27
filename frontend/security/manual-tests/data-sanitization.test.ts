@@ -7,10 +7,7 @@ describe("Data Sanitization Tests", () => {
 
   beforeEach(async () => {
     client = new SecurityTestClient(process.env.VITE_API_BASE_URL);
-    await client.login(
-      process.env.TEST_USERNAME || "testuser",
-      process.env.TEST_PASSWORD || "Test123"
-    );
+    await client.login(process.env.TEST_USERNAME, process.env.TEST_PASSWORD);
   });
 
   it("should handle special characters safely", async () => {
@@ -26,7 +23,7 @@ describe("Data Sanitization Tests", () => {
 
     for (const name of specialChars) {
       try {
-        const response = await client.post("/api/products", {
+        const response = await client.post("/products", {
           name,
           price: 1000,
           quantity: 10,
@@ -74,7 +71,7 @@ describe("Data Sanitization Tests", () => {
 
     for (const payload of jsonInjectionPayloads) {
       try {
-        const response = await client.post("/api/products", {
+        const response = await client.post("/products", {
           name: payload,
           price: 1000,
           quantity: 10,

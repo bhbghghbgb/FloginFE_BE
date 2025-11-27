@@ -29,8 +29,8 @@ export class SecurityTestClient {
   async login(username: string, password: string): Promise<string> {
     try {
       const response: AxiosResponse = await this.client.post("/auth/login", {
-        username,
-        password,
+        username: username || "testuser",
+        password: password || "Test123",
       });
 
       if (response.data.token) {

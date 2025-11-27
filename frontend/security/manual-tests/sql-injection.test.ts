@@ -53,10 +53,7 @@ describe("SQL Injection Tests", () => {
 
   it("should prevent SQL injection in product search", async () => {
     // First login as admin
-    await client.login(
-      process.env.TEST_USERNAME || "admin",
-      process.env.TEST_PASSWORD || "password"
-    );
+    await client.login(process.env.TEST_USERNAME, process.env.TEST_PASSWORD);
 
     for (const payload of SQL_INJECTION_PAYLOADS) {
       try {

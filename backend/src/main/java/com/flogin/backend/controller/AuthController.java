@@ -25,9 +25,10 @@ public class AuthController {
         LoginResponse loginResponse = authService.authenticate(request);
         if (loginResponse.isSuccess()) {
             log.debug("Someone logged in: " + request.getUsername() + " " + loginResponse.getToken());
-            return ResponseEntity.ok(loginResponse);
+        } else {
+            log.debug("Someone failed to log in: " + request.getUsername());
+            // return new ResponseEntity<LoginResponse>(loginResponse, HttpStatus.UNAUTHORIZED);
         }
-        log.debug("Someone failed to log in: " + request.getUsername());
-        return new ResponseEntity<LoginResponse>(loginResponse, HttpStatus.UNAUTHORIZED);
+        return ResponseEntity.ok(loginResponse);
     }
 }

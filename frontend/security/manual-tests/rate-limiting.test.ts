@@ -48,10 +48,7 @@ describe("Rate Limiting Tests", () => {
 
   it("should test API endpoint rate limiting", async () => {
     // First get a valid token
-    await client.login(
-      process.env.TEST_USERNAME || "admin",
-      process.env.TEST_PASSWORD || "password"
-    );
+    await client.login(process.env.TEST_USERNAME, process.env.TEST_PASSWORD);
 
     const attempts = 20;
     let successCount = 0;
