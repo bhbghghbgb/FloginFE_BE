@@ -16,6 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -185,5 +186,174 @@ class AuthServiceImplTest {
     public void testValidatePassword_ShouldReturnErrorMessage_WhenPasswordMissingLetter() {
         String result = authService.validatePassword("123456");
         assertEquals("Password must contain both letters and numbers", result);
+    }
+     @Test
+    public void testAuthenticate_ShouldNotCallRepositoryWhenUsernameValidationFails() {
+        LoginRequest request = new LoginRequest("invalid@", rawPassword);
+
+        authService.authenticate(request);
+
+        verify(userRepository, never()).findByUsername(anyString());
+    }
+
+    @Test
+    public void testAuthenticate_ShouldNotCallPasswordEncoderWhenUserNotFound() {
+        LoginRequest request = new LoginRequest(username, rawPassword);
+
+        when(userRepository.findByUsername(anyString())).thenReturn(Optional.empty());
+
+        authService.authenticate(request);
+
+        verify(passwordEncoder, never()).matches(anyString(), anyString());
+    }
+
+    @Test
+    public void testAuthenticate_ShouldNotGenerateTokenWhenPasswordIncorrect() {
+        LoginRequest request = new LoginRequest(username, rawPassword);
+        User user = new User();
+        user.setUsername(username);
+        user.setPassword(encodedPassword);
+
+        when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches(anyString(), anyString())).thenReturn(false);
+
+        authService.authenticate(request);
+
+        verify(jwtUtil, never()).generateToken(anyString());
+    }
+
+    @Test
+    public void testValidateUsername_ShouldAcceptValidCharacters() {
+        String result = authService.validateUsername("valid_user-name.123");
+        assertEquals("", result);
+    }
+
+    @Test
+    public void testValidateUsername_EdgeCase_ExactlyThreeCharacters() {
+        String result = authService.validateUsername("abc");
+        assertEquals("", result);
+    }
+
+    @Test
+    public void testValidateUsername_EdgeCase_ExactlyFiftyCharacters() {
+        String username50 = "a".repeat(50);
+        String result = authService.validateUsername(username50);
+        assertEquals("", result);
+    }
+
+    @Test
+    public void testValidateUsername_ShouldRejectSpecialCharacters() {
+        String[] invalidUsernames = {"test!", "user#", "admin$", "root%"};
+        for (String invalid : invalidUsernames) {
+            String result = authService.validateUsername(invalid);
+            assertEquals("Username contains invalid characters", result);
+        }
+    }
+
+    @Test
+    public void testValidatePassword_EdgeCase_ExactlySixCharacters() {
+        String result = authService.validatePassword("Abc123");
+        assertEquals("", result);
+    }
+
+    @Test
+    public void testValidatePassword_EdgeCase_ExactlyOneHundredCharacters() {
+        String password100 = "A" + "b".repeat(98) + "1";
+        String result = authService.validatePassword(password100);
+        assertEquals("", result);
+    }
+
+    @Test
+    public void testValidatePassword_ShouldAcceptMultipleDigitsAndLetters() {
+        String result = authService.validatePassword("Abc123Def456");
+        assertEquals("", result);
+    }
+
+    @Test
+    public void testAuthenticate_ShouldReturnNullTokenOnFailure() {
+        LoginRequest request = new LoginRequest(username, rawPassword);
+
+        when(userRepository.findByUsername(anyString())).thenReturn(Optional.empty());
+
+        LoginResponse response = authService.authenticate(request);
+
+        assertNull(response.getToken());
+        assertNotNull(response.getMessage());
+    }
+
+    @Test
+    public void testValidateUsername_ShouldRejectBlankWithSpaces() {
+        String result = authService.validateUsername("   ");
+        assertEquals("Username cannot be empty", result);
+    }
+
+    @Test
+    public void testValidatePassword_ShouldRejectBlankWithSpaces() {
+        String result = authService.validatePassword("   ");
+        assertEquals("Password cannot be empty", result);
+    }
+
+    @Test
+    public void testAuthenticate_ShouldFailWhenUsernameIsWhitespaceOnly() {
+        LoginRequest request = new LoginRequest("   ", rawPassword);
+
+        LoginResponse response = authService.authenticate(request);
+
+        assertFalse(response.isSuccess());
+        assertEquals("Username cannot be empty", response.getMessage());
+    }
+
+    @Test
+    public void testAuthenticate_ShouldFailWhenPasswordIsWhitespaceOnly() {
+        LoginRequest request = new LoginRequest(username, "   ");
+
+        LoginResponse response = authService.authenticate(request);
+
+        assertFalse(response.isSuccess());
+        assertEquals("Password cannot be empty", response.getMessage());
+    }
+
+    @Test
+    public void testValidateUsername_ShouldAcceptUnderscoreDotAndHyphen() {
+        String result = authService.validateUsername("test_user.name-123");
+        assertEquals("", result);
+    }
+
+    @Test
+    public void testAuthenticate_ShouldValidateBeforeFetchingUser() {
+        LoginRequest request = new LoginRequest("a", rawPassword);
+
+        authService.authenticate(request);
+
+        verify(userRepository, never()).findByUsername(anyString());
+    }
+
+    @Test
+    public void testValidatePassword_ShouldRejectBoundaryCase_FiveCharacters() {
+        String result = authService.validatePassword("Abcd1");
+        assertEquals("Password must be 6-100 characters", result);
+    }
+
+    @Test
+    public void testValidatePassword_ShouldRejectBoundaryCase_OneHundredOneCharacters() {
+        String password101 = "A" + "b".repeat(99) + "1";
+        String result = authService.validatePassword(password101);
+        assertEquals("Password must be 6-100 characters", result);
+    }
+
+    @Test
+    public void testAuthenticate_ShouldReturnCorrectSuccessFlag() {
+        LoginRequest request = new LoginRequest(username, rawPassword);
+        User user = new User();
+        user.setUsername(username);
+        user.setPassword(encodedPassword);
+
+        when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
+        when(jwtUtil.generateToken(anyString())).thenReturn("mock-token");
+
+        LoginResponse response = authService.authenticate(request);
+
+        assertTrue(response.isSuccess());
     }
 }
