@@ -16,6 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -185,5 +186,69 @@ class AuthServiceImplTest {
     public void testValidatePassword_ShouldReturnErrorMessage_WhenPasswordMissingLetter() {
         String result = authService.validatePassword("123456");
         assertEquals("Password must contain both letters and numbers", result);
+    }
+      @Test
+    public void testValidateUsername_ShouldRejectSpaces() {
+        String result = authService.validateUsername("test user");
+        assertEquals("Username contains invalid characters", result);
+    }
+
+    @Test
+    public void testValidateUsername_ShouldAcceptDotDashUnderscore() {
+        String result = authService.validateUsername("test.user-name_123");
+        assertEquals("", result);
+    }
+
+    @Test
+    public void testValidateUsername_BlankWithSpaces_IsTreatedAsEmpty() {
+        String result = authService.validateUsername("   ");
+        assertEquals("Username cannot be empty", result);
+    }
+
+    @Test
+    public void testValidatePassword_MinLengthEdge() {
+        String result = authService.validatePassword("Abc123");
+        assertEquals("", result);
+    }
+
+    @Test
+    public void testValidatePassword_MaxLengthEdge() {
+        String longPassword = "A" + "b".repeat(98) + "1"; // length 100, has letter+digit
+        String result = authService.validatePassword(longPassword);
+        assertEquals("", result);
+    }
+
+    @Test
+    public void testValidatePassword_AllowsSpecialCharactersIfContainsLetterAndDigit() {
+        String result = authService.validatePassword("Pass@123");
+        assertEquals("", result);
+    }
+
+    @Test
+    public void testAuthenticate_ShouldNotCallRepoWhenUsernameInvalid() {
+        LoginRequest request = new LoginRequest("ab", "Test123");
+        LoginResponse response = authService.authenticate(request);
+        assertFalse(response.isSuccess());
+        verify(userRepository, never()).findByUsername(anyString());
+        verify(passwordEncoder, never()).matches(anyString(), anyString());
+        verify(jwtUtil, never()).generateToken(anyString());
+    }
+
+    @Test
+    public void testAuthenticate_ShouldNotGenerateToken_WhenPasswordInvalidLength() {
+        LoginRequest request = new LoginRequest(username, "p");
+        LoginResponse response = authService.authenticate(request);
+        assertFalse(response.isSuccess());
+        assertEquals("Password must be 6-100 characters", response.getMessage());
+        verify(jwtUtil, never()).generateToken(anyString());
+    }
+
+    @Test
+    public void testAuthenticate_WhenBothUsernameAndPasswordInvalid_ReturnsUsernameErrorFirst() {
+        LoginRequest request = new LoginRequest("u", "p");
+        LoginResponse response = authService.authenticate(request);
+        assertFalse(response.isSuccess());
+        assertEquals("Username must be 3-50 characters", response.getMessage());
+        verify(userRepository, never()).findByUsername(anyString());
     }
 }
