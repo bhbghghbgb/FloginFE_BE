@@ -181,3 +181,4 @@ playwright-report/
 html/
 performance/k6-report/
 zap-reports/
+security-report/

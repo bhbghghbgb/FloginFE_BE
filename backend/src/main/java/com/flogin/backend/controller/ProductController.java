@@ -8,7 +8,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -29,10 +28,7 @@ public class ProductController {
     // --- Update product ---
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ProductResponse> updateProduct(
-        @PathVariable Long id,
-        @Validated @RequestBody ProductRequest request
-    ) {
+    public ResponseEntity<ProductResponse> updateProduct(@PathVariable Long id, @Valid @RequestBody ProductRequest request) {
         ProductResponse response = productService.updateProduct(id, request);
         return ResponseEntity.ok(response);
     }
@@ -48,12 +44,7 @@ public class ProductController {
     // --- List products with filters and paging ---
     @GetMapping
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<Page<ProductResponse>> listProducts(
-        @RequestParam(required = false) String name,
-        @RequestParam(required = false) String category,
-        @RequestParam(defaultValue = "0") int page,
-        @RequestParam(defaultValue = "10") int size
-    ) {
+    public ResponseEntity<Page<ProductResponse>> listProducts(@RequestParam(required = false) String name, @RequestParam(required = false) String category, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
         Page<ProductResponse> products = productService.getProducts(name, category, page, size);
         return ResponseEntity.ok(products);
     }
