@@ -25,10 +25,10 @@ describe("Login Validation", () => {
     });
 
     it("should return error for username too long", () => {
-      const result = validateUsername("a".repeat(21));
+      const result = validateUsername("a".repeat(51));
       expect(result.isValid).toBe(false);
       expect(result.errors).toContain(
-        "Username must be less than 20 characters"
+        "Username must be less than 50 characters"
       );
     });
 
@@ -64,6 +64,12 @@ describe("Login Validation", () => {
       const result = validatePassword("abc12");
       expect(result.isValid).toBe(false);
       expect(result.errors).toContain("Password must be at least 6 characters");
+    });
+
+    it("should return error for password too long", () => {
+      const result = validatePassword("abc12".repeat(50));
+      expect(result.isValid).toBe(false);
+      expect(result.errors).toContain("Password must be less than 100 characters");
     });
 
     it("should return error for password without letters", () => {
