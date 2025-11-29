@@ -11,8 +11,8 @@ export const validateUsername = (username: string): ValidationResult => {
   } else {
     if (username.length < 3)
       errors.push("Username must be at least 3 characters");
-    if (username.length > 20)
-      errors.push("Username must be less than 20 characters");
+    if (username.length > 50)
+      errors.push("Username must be less than 50 characters");
     if (!/^[a-zA-Z0-9_]+$/.test(username))
       errors.push(
         "Username can only contain letters, numbers, and underscores"
@@ -33,8 +33,8 @@ export const validatePassword = (password: string): ValidationResult => {
   } else {
     if (password.length < 6)
       errors.push("Password must be at least 6 characters");
-    if (password.length > 50)
-      errors.push("Password must be less than 50 characters");
+    if (password.length > 100)
+      errors.push("Password must be less than 100 characters");
     if (!/[a-zA-Z]/.test(password))
       errors.push("Password must contain at least one letter");
     if (!/\d/.test(password))
