@@ -17,6 +17,8 @@ describe("CSRF Tests", () => {
       { method: "DELETE", url: "/products/1" },
     ];
 
+    const results = [];
+
     for (const endpoint of endpoints) {
       try {
         client.clearAuth();
@@ -39,7 +41,7 @@ describe("CSRF Tests", () => {
           { status: response.status }
         );
 
-        expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
+        results.push(result);
       } catch (error: any) {
         const status = error.response?.status;
         const result = createTestResult(
@@ -53,12 +55,20 @@ describe("CSRF Tests", () => {
           { method: endpoint.method, url: endpoint.url, authenticated: false },
           { status }
         );
-        expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
+        results.push(result);
       }
     }
+
+    // Assert all results at the end
+    const failedResults = results.filter((r) => !r.passed);
+    expect(failedResults.length, JSON.stringify(failedResults, null, 2)).toBe(
+      0
+    );
   });
 
   it("should reject requests with invalid tokens", async () => {
+    const results = [];
+
     client.setToken("invalid-token-here");
 
     try {
@@ -77,7 +87,7 @@ describe("CSRF Tests", () => {
         "Implement proper JWT validation with signature verification"
       );
 
-      expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
+      results.push(result);
     } catch (error: any) {
       const status = error.response?.status;
       const result = createTestResult(
@@ -91,7 +101,13 @@ describe("CSRF Tests", () => {
         { method: "GET", url: "/products", token: "invalid-token-here" },
         { status }
       );
-      expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
+      results.push(result);
     }
+
+    // Assert all results at the end
+    const failedResults = results.filter((r) => !r.passed);
+    expect(failedResults.length, JSON.stringify(failedResults, null, 2)).toBe(
+      0
+    );
   });
 });

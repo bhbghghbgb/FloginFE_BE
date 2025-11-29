@@ -12,6 +12,8 @@ describe("SQL Injection Tests", () => {
   });
 
   it("should prevent SQL injection in login endpoint", async () => {
+    const results = [];
+
     for (const payload of SQL_INJECTION_PAYLOADS) {
       try {
         const response = await client.post("/auth/login", {
@@ -42,7 +44,6 @@ describe("SQL Injection Tests", () => {
         );
 
         results.push(result);
-        expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
       } catch (error) {
         const result = createTestResult(
           `SQL Injection - Login with ${payload.substring(0, 20)}...`,
@@ -62,12 +63,19 @@ describe("SQL Injection Tests", () => {
           }
         );
         results.push(result);
-        expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
       }
     }
+
+    // Assert all results at the end
+    const failedResults = results.filter((r) => !r.passed);
+    expect(failedResults.length, JSON.stringify(failedResults, null, 2)).toBe(
+      0
+    );
   });
 
   it("should prevent SQL injection in product search", async () => {
+    const results = [];
+
     await client.login(process.env.TEST_USERNAME, process.env.TEST_PASSWORD);
 
     for (const payload of SQL_INJECTION_PAYLOADS) {
@@ -99,7 +107,6 @@ describe("SQL Injection Tests", () => {
         );
 
         results.push(result);
-        expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
       } catch (error) {
         const result = createTestResult(
           `SQL Injection - Product search with ${payload.substring(0, 20)}...`,
@@ -117,8 +124,13 @@ describe("SQL Injection Tests", () => {
           }
         );
         results.push(result);
-        expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
       }
     }
+
+    // Assert all results at the end
+    const failedResults = results.filter((r) => !r.passed);
+    expect(failedResults.length, JSON.stringify(failedResults, null, 2)).toBe(
+      0
+    );
   });
 });

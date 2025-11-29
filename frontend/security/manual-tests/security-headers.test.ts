@@ -19,6 +19,8 @@ describe("Security Headers Tests", () => {
       "Strict-Transport-Security",
     ];
 
+    const results = [];
+
     for (const endpoint of endpoints) {
       try {
         const response = await client.get(endpoint);
@@ -49,7 +51,7 @@ describe("Security Headers Tests", () => {
           "Configure security headers in Spring Security configuration using headers() method"
         );
 
-        expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
+        results.push(result);
       } catch (error: any) {
         if (error.response) {
           const headers = error.response.headers;
@@ -76,13 +78,21 @@ describe("Security Headers Tests", () => {
               ),
             }
           );
-          expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
+          results.push(result);
         }
       }
     }
+
+    // Assert all results at the end
+    const failedResults = results.filter((r) => !r.passed);
+    expect(failedResults.length, JSON.stringify(failedResults, null, 2)).toBe(
+      0
+    );
   });
 
   it("should validate CORS configuration", async () => {
+    const results = [];
+
     try {
       const response = await client.get("/products", {
         Origin: "http://malicious-site.com",
@@ -108,7 +118,7 @@ describe("Security Headers Tests", () => {
         "Configure CORS policy to allow only trusted origins"
       );
 
-      expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
+      results.push(result);
     } catch (error) {
       const result = createTestResult(
         "CORS Configuration",
@@ -124,7 +134,13 @@ describe("Security Headers Tests", () => {
           origin: "http://malicious-site.com",
         }
       );
-      expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
+      results.push(result);
     }
+
+    // Assert all results at the end
+    const failedResults = results.filter((r) => !r.passed);
+    expect(failedResults.length, JSON.stringify(failedResults, null, 2)).toBe(
+      0
+    );
   });
 });

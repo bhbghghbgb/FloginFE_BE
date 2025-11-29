@@ -27,35 +27,44 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final IUserDetailService userDetailsService;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain)
-        throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
         String authHeader = request.getHeader("Authorization");
-        String token = null;
-        String username = null;
 
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            token = authHeader.substring(7);
-            username = jwtUtil.getUsernameFromToken(token);
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            filterChain.doFilter(request, response);
+            return;
         }
 
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            if (jwtUtil.validateToken(token)) {
-                log.debug("Authorized someone with bearer: " + username + " " + token);
+        String token = authHeader.substring(7);
+        String username = null;
+
+        try {
+            // Extract username AND validate in one step - safe against all JWT errors
+            username = jwtUtil.getUsernameFromToken(token);  // This validates implicitly
+
+            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-                log.debug("User roles/authorities for '{}': {}", username,
-                    userDetails.getAuthorities().stream()
-                        .map(GrantedAuthority::getAuthority)
-                        .collect(Collectors.joining(", ")));
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                    userDetails, null, userDetails.getAuthorities());
+
+                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
+
+                log.debug("Authorized user: {} with authorities: {}", username, userDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.joining(", ")));
             }
+        } catch (Exception e) {  // Catches MalformedJwtException, ExpiredJwtException, SignatureException, etc.
+            log.warn("Invalid JWT token: {}", e.getMessage());
+            sendUnauthorizedResponse(response, "Invalid or expired JWT token");
+            return;
         }
 
         filterChain.doFilter(request, response);
     }
+
+    private void sendUnauthorizedResponse(HttpServletResponse response, String message) throws IOException {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType("application/json;charset=UTF-8");
+        response.getWriter().write("{\"error\":\"" + message + "\"}");
+    }
+
 }

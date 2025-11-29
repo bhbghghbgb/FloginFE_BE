@@ -19,6 +19,8 @@ describe("Input Validation Tests", () => {
       null, // null value
     ];
 
+    const results = [];
+
     for (const name of invalidNames) {
       try {
         const response = await client.post("/products", {
@@ -48,7 +50,7 @@ describe("Input Validation Tests", () => {
           "Implement server-side validation for all input fields"
         );
 
-        expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
+        results.push(result);
       } catch (error: any) {
         const status = error.response?.status;
         const result = createTestResult(
@@ -68,9 +70,15 @@ describe("Input Validation Tests", () => {
           },
           { status }
         );
-        expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
+        results.push(result);
       }
     }
+
+    // Assert all results at the end
+    const failedResults = results.filter((r) => !r.passed);
+    expect(failedResults.length, JSON.stringify(failedResults, null, 2)).toBe(
+      0
+    );
   });
 
   it("should validate price constraints", async () => {
@@ -82,6 +90,8 @@ describe("Input Validation Tests", () => {
       null,
       "string" as any,
     ];
+
+    const results = [];
 
     for (const price of invalidPrices) {
       try {
@@ -109,7 +119,7 @@ describe("Input Validation Tests", () => {
           { status: response.status }
         );
 
-        expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
+        results.push(result);
       } catch (error: any) {
         const status = error.response?.status;
         const result = createTestResult(
@@ -127,9 +137,15 @@ describe("Input Validation Tests", () => {
           },
           { status }
         );
-        expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
+        results.push(result);
       }
     }
+
+    // Assert all results at the end
+    const failedResults = results.filter((r) => !r.passed);
+    expect(failedResults.length, JSON.stringify(failedResults, null, 2)).toBe(
+      0
+    );
   });
 
   it("should validate quantity constraints", async () => {
@@ -139,6 +155,8 @@ describe("Input Validation Tests", () => {
       null,
       "invalid" as any,
     ];
+
+    const results = [];
 
     for (const quantity of invalidQuantities) {
       try {
@@ -166,7 +184,7 @@ describe("Input Validation Tests", () => {
           { status: response.status }
         );
 
-        expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
+        results.push(result);
       } catch (error: any) {
         const status = error.response?.status;
         const result = createTestResult(
@@ -184,12 +202,20 @@ describe("Input Validation Tests", () => {
           },
           { status }
         );
-        expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
+        results.push(result);
       }
     }
+
+    // Assert all results at the end
+    const failedResults = results.filter((r) => !r.passed);
+    expect(failedResults.length, JSON.stringify(failedResults, null, 2)).toBe(
+      0
+    );
   });
 
   it("should validate description length", async () => {
+    const results = [];
+
     const longDescription = "a".repeat(501);
 
     try {
@@ -217,7 +243,7 @@ describe("Input Validation Tests", () => {
         { status: response.status }
       );
 
-      expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
+      results.push(result);
     } catch (error: any) {
       const status = error.response?.status;
       const result = createTestResult(
@@ -235,8 +261,14 @@ describe("Input Validation Tests", () => {
         },
         { status }
       );
-      expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
+      results.push(result);
     }
+
+    // Assert all results at the end
+    const failedResults = results.filter((r) => !r.passed);
+    expect(failedResults.length, JSON.stringify(failedResults, null, 2)).toBe(
+      0
+    );
   });
 
   it("should validate login request format", async () => {
@@ -247,6 +279,8 @@ describe("Input Validation Tests", () => {
       { username: null, password: null }, // null values
       { username: "a".repeat(51), password: "test" }, // username too long
     ];
+
+    const results = [];
 
     for (const login of invalidLogins) {
       try {
@@ -265,7 +299,7 @@ describe("Input Validation Tests", () => {
           "Implement comprehensive input validation for all endpoints"
         );
 
-        expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
+        results.push(result);
       } catch (error: any) {
         const status = error.response?.status;
         const result = createTestResult(
@@ -279,8 +313,14 @@ describe("Input Validation Tests", () => {
           { method: "POST", url: "/auth/login", payload: login },
           { status }
         );
-        expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
+        results.push(result);
       }
     }
+
+    // Assert all results at the end
+    const failedResults = results.filter((r) => !r.passed);
+    expect(failedResults.length, JSON.stringify(failedResults, null, 2)).toBe(
+      0
+    );
   });
 });

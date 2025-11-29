@@ -9,6 +9,7 @@ export default defineConfig({
   reporter: [
     ["html"],
     ["list"], // optional: also show results in console
+    ...(process.env.CI ? [["github"] as const] : []),
   ],
   use: {
     baseURL: "http://localhost:3000",

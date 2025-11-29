@@ -15,6 +15,8 @@ describe("XSS Tests", () => {
   });
 
   it("should sanitize XSS payloads in product creation", async () => {
+    const results = [];
+
     for (const payload of XSS_PAYLOADS) {
       try {
         const productData = {
@@ -45,7 +47,7 @@ describe("XSS Tests", () => {
           "Implement output encoding and input validation using libraries like OWASP Java Encoder"
         );
 
-        expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
+        results.push(result);
       } catch (error: any) {
         const result = createTestResult(
           `XSS - Product creation with ${payload.substring(0, 20)}...`,
@@ -65,8 +67,14 @@ describe("XSS Tests", () => {
           },
           { status: error.response?.status }
         );
-        expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
+        results.push(result);
       }
     }
+
+    // Assert all results at the end
+    const failedResults = results.filter((r) => !r.passed);
+    expect(failedResults.length, JSON.stringify(failedResults, null, 2)).toBe(
+      0
+    );
   });
 });

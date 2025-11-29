@@ -21,6 +21,8 @@ describe("Data Sanitization Tests", () => {
       "Product'SingleQuote",
     ];
 
+    const results = [];
+
     for (const name of specialChars) {
       try {
         const response = await client.post("/products", {
@@ -56,7 +58,7 @@ describe("Data Sanitization Tests", () => {
           "Implement input validation and output encoding for special characters"
         );
 
-        expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
+        results.push(result);
       } catch (error: any) {
         const result = createTestResult(
           `Data Sanitization - Special chars in name`,
@@ -72,9 +74,15 @@ describe("Data Sanitization Tests", () => {
             payload: { name: name.substring(0, 50) + "..." },
           }
         );
-        expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
+        results.push(result);
       }
     }
+
+    // Assert all results at the end
+    const failedResults = results.filter((r) => !r.passed);
+    expect(failedResults.length, JSON.stringify(failedResults, null, 2)).toBe(
+      0
+    );
   });
 
   it("should prevent JSON injection", async () => {
@@ -83,6 +91,8 @@ describe("Data Sanitization Tests", () => {
       'test", "admin": true, "x": "',
       'test\\", \\"role\\": \\"ADMIN\\", \\"x\\": \\"',
     ];
+
+    const results = [];
 
     for (const payload of jsonInjectionPayloads) {
       try {
@@ -111,7 +121,7 @@ describe("Data Sanitization Tests", () => {
           "Use proper JSON parsing and validation instead of string concatenation"
         );
 
-        expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
+        results.push(result);
       } catch (error: any) {
         const status = error.response?.status;
         const result = createTestResult(
@@ -129,8 +139,14 @@ describe("Data Sanitization Tests", () => {
           },
           { status }
         );
-        expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
+        results.push(result);
       }
     }
+
+    // Assert all results at the end
+    const failedResults = results.filter((r) => !r.passed);
+    expect(failedResults.length, JSON.stringify(failedResults, null, 2)).toBe(
+      0
+    );
   });
 });

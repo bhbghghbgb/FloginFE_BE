@@ -6,7 +6,8 @@ export default defineConfig({
     include: ["security/**/*.test.{ts,js}"],
     reporters: [
       "default",
-      ["html", { outputFile: "security-report/index.html" }],
-    ], // generate HTML report
+      ["html", { outputFile: "security-report/index.html" }], // generate HTML report
+      ...(process.env.CI ? ["github-actions"] : []),
+    ],
   },
 });

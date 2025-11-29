@@ -12,6 +12,8 @@ describe("Authentication Bypass Tests", () => {
   it("should prevent unauthorized role escalation", async () => {
     await client.login("testuser", "Test123");
 
+    const results = [];
+
     try {
       const response = await client.post("/products", {
         name: "Unauthorized Product",
@@ -33,7 +35,7 @@ describe("Authentication Bypass Tests", () => {
         { status: response.status }
       );
 
-      expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
+      results.push(result);
     } catch (error: any) {
       const status = error.response?.status;
       const result = createTestResult(
@@ -47,8 +49,14 @@ describe("Authentication Bypass Tests", () => {
         { method: "POST", url: "/products", role: "user" },
         { status }
       );
-      expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
+      results.push(result);
     }
+
+    // Assert all results at the end
+    const failedResults = results.filter((r) => !r.passed);
+    expect(failedResults.length, JSON.stringify(failedResults, null, 2)).toBe(
+      0
+    );
   });
 
   it("should test common authentication bypass techniques", async () => {
@@ -59,6 +67,8 @@ describe("Authentication Bypass Tests", () => {
       { username: "' OR '1'='1' --", password: "anything" },
       { username: "admin", password: "password' OR '1'='1" },
     ];
+
+    const results = [];
 
     for (const attempt of bypassAttempts) {
       try {
@@ -81,7 +91,7 @@ describe("Authentication Bypass Tests", () => {
           "Implement strong authentication with parameterized queries and input validation"
         );
 
-        expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
+        results.push(result);
       } catch (error: any) {
         const result = createTestResult(
           `Auth Bypass - Login with ${attempt.username.substring(0, 10)}...`,
@@ -95,8 +105,14 @@ describe("Authentication Bypass Tests", () => {
           )}`,
           { endpoint: "/auth/login", credentials: attempt }
         );
-        expect(result.passed, JSON.stringify(result, null, 2)).toBe(true);
+        results.push(result);
       }
     }
+
+    // Assert all results at the end
+    const failedResults = results.filter((r) => !r.passed);
+    expect(failedResults.length, JSON.stringify(failedResults, null, 2)).toBe(
+      0
+    );
   });
 });
