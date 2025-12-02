@@ -551,11 +551,15 @@ jobs:
       # --- Start backend server (prod profile) ---
       - name: Start Backend
         run: |
-          java -jar target/*.jar --debug --spring.profiles.active=prod &
+          java -jar target/*.jar --spring.profiles.active=prod &
           echo "BACKEND_PID=$!" >> $GITHUB_ENV
         working-directory: backend
         env:
           LOGGING_FILE_PATH: logs
+          LOGGING_LOGBACK_ROLLINGPOLICY_FILE_NAME_PATTERN: spring.%d{yyyy-MM-dd}.%i.log
+          LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB: DEBUG
+          LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY: DEBUG
+          SPRING_MVC_LOG_REQUEST_DETAILS: true
 
       - name: Wait for Backend
         uses: mydea/action-wait-for-api@v2
@@ -598,7 +602,15 @@ jobs:
       - name: Stop Backend
         if: always()
         run: kill ${{ env.BACKEND_PID }} || true
-    
+
+      # --- Fix ZAP File Permissions ---
+      # ZAP created files as root (UID 0). Change ownership to the runner user ($USER).
+      - name: Fix ZAP File Permissions
+        if: always()
+        run: |
+          sudo chown -R $USER:$USER frontend/zap-reports/temp-zap-home
+        continue-on-error: true
+
       # --- Collect and Consolidate Logs ---
       # This is the crucial step to move all logs into the final upload directory.
       - name: Consolidate Logs into Artifact Path
