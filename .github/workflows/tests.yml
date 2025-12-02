@@ -551,9 +551,11 @@ jobs:
       # --- Start backend server (prod profile) ---
       - name: Start Backend
         run: |
-          java -jar target/*.jar --spring.profiles.active=prod &
+          java -jar target/*.jar --debug --spring.profiles.active=prod &
           echo "BACKEND_PID=$!" >> $GITHUB_ENV
         working-directory: backend
+        env:
+          LOGGING_FILE_PATH: logs
 
       - name: Wait for Backend
         uses: mydea/action-wait-for-api@v2
@@ -567,8 +569,10 @@ jobs:
 
       - name: Prepare ZAP Security Reports
         if: always()
-        run: mkdir -p ./zap-reports/zap-reports
-        working-directory: frontend
+        run: |
+          mkdir -p frontend/zap-reports/zap-reports
+          mkdir -p frontend/zap-reports/temp-zap-home
+          mkdir -p backend/logs
 
       # --- Run OWASP ZAP Scan (Using Automation Framework) ---
       - name: Run OWASP ZAP Full Scan with Authentication
@@ -576,12 +580,14 @@ jobs:
           docker run --rm \
             --network host \
             -u root \
-            -v $(pwd)/zap-reports/zap-reports:/home/zap/zap-reports/:rw \
             -v $(pwd)/security/zap-config.yml:/home/zap/zap-config.yml \
+            -v $(pwd)/zap-reports/zap-reports:/home/zap/zap-reports/:rw \
+            -v $(pwd)/zap-reports/temp-zap-home:/root/.ZAP/:rw \
             -e TEST_USERNAME=${{ env.TEST_USERNAME }} \
             -e TEST_PASSWORD=${{ env.TEST_PASSWORD }} \
-            -t zaproxy/zap-stable zap.sh \
+            -t zaproxy/zap-stable zap.sh -loglevel debug \
             -cmd -autorun /home/zap/zap-config.yml \
+            -dir /root/.ZAP \
             -config proxy.port=8090
         env:
           TEST_USERNAME: "testuser"
@@ -592,6 +598,18 @@ jobs:
       - name: Stop Backend
         if: always()
         run: kill ${{ env.BACKEND_PID }} || true
+    
+      # --- Collect and Consolidate Logs ---
+      # This is the crucial step to move all logs into the final upload directory.
+      - name: Consolidate Logs into Artifact Path
+        if: always()
+        run: |
+          TARGET_DIR=frontend/zap-reports/zap-reports/logs
+          mkdir -p $TARGET_DIR
+          mv backend/logs/*.log $TARGET_DIR/ || true
+          mv frontend/zap-reports/temp-zap-home/*.log $TARGET_DIR/ || true
+          rm -rf frontend/zap-reports/temp-zap-home
+        continue-on-error: true
 
       # --- Upload Security Reports ---
       - name: Upload ZAP Security Reports
